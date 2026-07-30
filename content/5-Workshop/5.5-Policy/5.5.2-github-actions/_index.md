@@ -8,46 +8,21 @@ pre: " <b> 5.5.2. </b> "
 
 # 5.5.2 Configure GitHub Secrets & CI/CD Pipeline
 
-In this step, configure repository secrets and the automated deployment workflow.
+In this step, store AWS authentication credentials in GitHub Repository Secrets and execute the automated CI/CD pipeline.
 
-1. In your GitHub repository, navigate to **Settings** => **Secrets and variables** => **Actions**.
-2. Add secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `EC2_HOST`, `EC2_SSH_KEY`.
-3. Push `.github/workflows/deploy.yml` to the `main` branch to trigger automatic Docker building, ECR pushing, and EC2 deployment.
+### 1. Repository Secrets Configuration
+In GitHub Repository => **Settings** => **Secrets and variables** => **Actions**, add:
+- `AWS_ACCESS_KEY_ID`: Access key for IAM user `tracker-s3-uploader-2`
+- `AWS_SECRET_ACCESS_KEY`: Secret access key for IAM user `tracker-s3-uploader-2`
+- `EC2_HOST`: Elastic IP of EC2 server (`3.106.194.112`)
+- `EC2_SSH_KEY`: SSH Private Key for `ec2-user`
 
-```yaml
-name: Deploy to EC2 (Tracker Maintenance)
-on:
-  push:
-    branches:
-      - main
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-2
-      - run: |
-          docker build -t 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-be:latest ./tracker_maintenance_service
-          docker push 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-be:latest
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ec2-user
-            docker-compose pull && docker-compose up -d
-```
+### 2. Automated Workflow Runs
+Every git push to the `main` branch automatically triggers the Docker container build, ECR push, and SSH deployment to EC2.
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your GitHub Actions screenshot showing the green successful `Deploy to EC2` workflow run here.
-> 
-> ![GitHub Actions CI/CD](/images/5-Workshop/5.3-S3-vpc/github-actions-setup.png?classes=shadow)
+<div style="text-align: center; margin: 20px 0;">
+
+  ![GitHub Actions Runs](/images/5-Workshop/5.5-Policy/5.5.2-github-actions/github-actions-runs.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.5.2. GitHub Actions automated workflow execution log showing successful Deploy to EC2 runs.</div>
+</div>
