@@ -17,9 +17,9 @@ chapter: false
 
 &emsp; **University:** Ho Chi Minh City University of Technology
 
-&emsp; **Major:** Information Technology
+&emsp; **Major:** Computer Science
 
-&emsp; **Class:** AWS082025
+&emsp; **Class:** CC22KHM4
 
 &emsp; **Internship Company:** Amazon Web Services Viet Nam Company Limited
 

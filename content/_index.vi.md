@@ -9,15 +9,15 @@ chapter: false
 ### Thông tin sinh viên:
 &emsp; **Họ và tên:** Nguyễn Trần Hữu Đức
 
-&emsp; **Số điện thoại:** 0989888999
+&emsp; **Số điện thoại:** 0707999841
 
 &emsp; **Email:** duc.nguyen0022521670@hcmut.edu.vn
 
 &emsp; **Trường:** Đại học Bách Khoa TP.HCM
 
-&emsp; **Ngành:** Công nghệ thông tin
+&emsp; **Ngành:** Khoa học máy tính
 
-&emsp; **Lớp:** AWS082025
+&emsp; **Lớp:** CC22KHM4
 
 &emsp; **Công ty thực tập:** Công ty TNHH Amazon Web Services Viet Nam
 
@@ -25,7 +25,7 @@ chapter: false
 
 &emsp; **Thời gian thực tập:** Từ ngày 01/06/2026 đến ngày 31/07/2026
 
-![Ảnh đại diện của bạn](/images/avatar.png)
+![Ảnh đại diện của bạn](/images/avatar.jpg)
 
 
 
