@@ -1,12 +1,12 @@
 ---
-title: "Giới thiệu"
+title: "Introduction"
 date: 2026-07-30
 weight: 1
 chapter: false
 pre: " <b> 5.1. </b> "
 ---
 
-# 1. Giới thiệu
+# 5.1. Giới thiệu
 
 <div style="text-align: center; margin: 20px 0;">
 
@@ -17,13 +17,13 @@ pre: " <b> 5.1. </b> "
 
 <br>
 
-## 1.1 Tổng quan dự án
+## 1. Tổng quan dự án
 
 **Hệ thống Quản lý và Bảo trì Thiết bị (Tracker Maintenance System)** là một ứng dụng Web full-stack cloud-native được thiết kế để quản lý, theo dõi và bảo trì toàn bộ vòng đời của các thiết bị công nghiệp. Hệ thống cho phép các tổ chức số hóa hoàn toàn quy trình bảo trì — từ việc báo cáo sự cố thiết bị, phân công kỹ thuật viên đến việc lập lịch bảo trì định kỳ, tải lên hình ảnh nghiệm thu và xuất báo cáo — tất cả trên một nền tảng Web tập trung phân quyền theo vai trò (Role-Based Access Control).
 
 Toàn bộ dự án được phát triển và triển khai 100% trên nền tảng **Amazon Web Services (AWS)** trong khuôn khổ chương trình thực tập theo **Đề tài 3: Xây dựng và phát triển ứng dụng Web trên nền tảng Cloud**.
 
-## 1.2 Đặt vấn đề & Vấn đề nghiệp vụ
+## 2. Đặt vấn đề & Vấn đề nghiệp vụ
 
 Trong môi trường quản lý nhà xưởng và công nghiệp truyền thống, việc bảo trì thiết bị thường được quản lý thủ công qua sổ sách, file Excel hoặc các phần mềm On-Premises rời rạc. Phương pháp này bộc lộ nhiều hạn chế nghiêm trọng:
 
@@ -35,7 +35,7 @@ Trong môi trường quản lý nhà xưởng và công nghiệp truyền thốn
 
 **Tracker Maintenance System** giải quyết triệt để các vấn đề trên bằng cách cung cấp giải pháp Web trên Cloud tích hợp thông báo thời gian thực, quét mã QR quản lý tài sản, lưu trữ ảnh S3 và cơ chế chống tấn công brute-force tự động.
 
-## 1.3 Mục tiêu bài lab
+## 3. Mục tiêu bài lab
 
 Bài lab hướng dẫn các mục tiêu kỹ thuật cốt lõi sau:
 
@@ -50,7 +50,7 @@ Bài lab hướng dẫn các mục tiêu kỹ thuật cốt lõi sau:
 9. **Quản lý log tập trung với CloudWatch:** Đẩy toàn bộ log container ứng dụng (backend và frontend) về AWS CloudWatch Log Groups để theo dõi và tìm kiếm thời gian thực.
 10. **Sao chép ECR đa vùng (Cross-Region Replication):** Cấu hình quy tắc nhân bản registry ECR để hình ảnh Docker push về vùng chính Sydney tự động đồng bộ sang các vùng phụ (Singapore, Ohio), sẵn sàng cho việc mở rộng đa vùng trong tương lai.
 
-## 1.4 Sơ đồ kiến trúc hệ thống
+## 4. Sơ đồ kiến trúc hệ thống
 
 Hệ thống tuân theo kiến trúc **Cloud-native đa tầng (Multi-tier)** triển khai tại vùng AWS `ap-southeast-2 (Sydney)`:
 
@@ -99,7 +99,7 @@ Quy trình CI/CD GitHub Actions
   push main ──► Build Docker ──► Push ECR Sydney ──► SSH Deploy EC2
 ```
 
-## 1.5 Tóm tắt Công nghệ sử dụng
+## 5. Tóm tắt Công nghệ sử dụng
 
 | Tầng | Công nghệ | Phiên bản | Mục đích |
 |---|---|---|---|

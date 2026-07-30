@@ -6,311 +6,161 @@ chapter: false
 pre: " <b> 5.3. </b> "
 ---
 
-# 3. Các bước thực hiện
+# 5.3. Các bước thực hiện
 
-## 3.1 Bước 1: Phát triển ứng dụng Web Full-Stack
+Thực hiện theo các bước hướng dẫn dưới đây để khởi tạo hạ tầng Cloud, đóng gói container và tự động hóa triển khai ứng dụng **Tracker Maintenance System** trên AWS.
 
-### 3.1.1 Backend — Spring Boot REST API
+---
 
-Backend được xây dựng trên **Spring Boot 3.5** sử dụng **Java 21** với kiến trúc phân tầng chuẩn:
+### Bước 5.3.1: Khởi tạo Custom VPC & Phân chia Subnet
 
-**Cấu trúc thư mục:**
-```
-tracker_maintenance_service/
-├── src/main/java/com/procare_system/tracker_maintenance_service/
-│   ├── configuration/         # Cấu hình Security, CORS, Beans
-│   │   ├── ApplicationInitConfig.java   # Khởi tạo tài khoản Admin mặc định
-│   │   └── SecurityConfig.java          # Cấu hình chuỗi lọc JWT Filter Chain
-│   ├── controller/            # Các endpoint REST API
-│   │   ├── AuthenticationController.java
-│   │   ├── EquipmentController.java
-│   │   ├── TicketController.java
-│   │   ├── UserController.java
-│   │   ├── ScheduleController.java
-│   │   └── NotificationController.java
-│   ├── service/               # Tầng xử lý logic nghiệp vụ
-│   │   ├── AuthenticationService.java
-│   │   ├── LoginAttemptService.java     # Bảo vệ chống tấn công Brute-force
-│   │   ├── EquipmentService.java
-│   │   ├── TicketService.java
-│   │   └── NotificationService.java
-│   ├── entity/                # Các JPA Entity (Bảng trong DB)
-│   ├── repository/            # Tầng truy vấn dữ liệu Spring Data JPA
-│   ├── exception/             # Xử lý ngoại lệ & Mã lỗi tùy chỉnh
-│   │   └── ErrorCode.java     # TOO_MANY_LOGIN_ATTEMPTS (HTTP 429)
-│   └── dto/                   # Đối tượng truyền dữ liệu Request/Response DTO
-└── src/main/resources/
-    └── application.yml        # Cấu hình DB, JWT, S3 qua biến môi trường
-```
+1. Truy cập **Amazon VPC Console** $\rightarrow$ Chọn **Create VPC**.
+2. Chọn **VPC only** $\rightarrow$ Đặt tên Name tag: `Tracker-VPC` $\rightarrow$ IPv4 CIDR block: `10.1.0.0/16`.
+3. Trên danh mục bên trái, chọn **Subnets** $\rightarrow$ Chọn **Create subnet**:
+   - **Public Subnet:** Tên `tracker-public-subnet-1`, CIDR `10.1.1.0/24`, Vùng Availability Zone `ap-southeast-2a`.
+   - **Private Subnet:** Tên `tracker-private-subnet-1`, CIDR `10.1.2.0/24`, Vùng Availability Zone `ap-southeast-2b`.
 
-**Các API Endpoint chính:**
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình VPC Console hiển thị dải VPC `Tracker-VPC` và danh sách Subnet đính kèm vào bên dưới.
+> 
+> ![Khởi tạo VPC và Subnet](/images/5-Workshop/5.3-S3-vpc/vpc-subnet-setup.png?classes=shadow)
 
-| Phương thức | Endpoint | Quyền truy cập | Mô tả |
-|---|---|---|---|
-| `POST` | `/auth/token` | Công khai | Đăng nhập và nhận JWT token |
-| `GET` | `/users` | ADMIN | Lấy danh sách người dùng |
-| `POST` | `/users` | ADMIN | Tạo người dùng mới |
-| `GET` | `/equipment` | Đã đăng nhập | Lấy danh sách thiết bị |
-| `POST` | `/equipment` | MANAGER | Tạo mới thiết bị kèm mã QR |
-| `GET` | `/equipment/{id}` | Đã đăng nhập | Xem chi tiết thiết bị |
-| `GET` | `/public/equipment/{id}` | Công khai | Tra cứu thiết bị qua mã QR không cần đăng nhập |
-| `GET` | `/tickets` | Đã đăng nhập | Xem danh sách phiếu bảo trì |
-| `POST` | `/tickets` | REPORTER/MANAGER | Tạo phiếu yêu cầu bảo trì mới |
-| `PATCH` | `/tickets/{id}/status` | TECHNICIAN/MANAGER | Cập nhật trạng thái phiếu |
-| `GET` | `/notifications` | Đã đăng nhập | Lấy danh sách thông báo |
-| `PATCH` | `/notifications/{id}/read` | Đã đăng nhập | Đánh dấu thông báo đã đọc |
-| `GET` | `/schedules` | MANAGER | Xem lịch bảo trì định kỳ |
+---
 
-### 3.1.2 Frontend — React Router v7 với TypeScript
+### Bước 5.3.2: Cấu hình Internet Gateway & Bảng tuyến đường (Route Tables)
 
-Frontend được phát triển bằng **React Router v7** ở chế độ **Server-Side Rendering (SSR)** tích hợp TypeScript và TailwindCSS.
+1. Trên VPC Console, chọn **Internet Gateways** $\rightarrow$ เลือก **Create internet gateway** $\rightarrow$ Đặt tên: `tracker-igw`.
+2. Chọn `tracker-igw` $\rightarrow$ Nhấn **Actions** $\rightarrow$ Chọn **Attach to VPC** $\rightarrow$ Chọn `Tracker-VPC`.
+3. Chọn **Route Tables** $\rightarrow$ Chọn Public Route Table $\rightarrow$ Nhấn **Edit routes** $\rightarrow$ Thêm tuyến đường `0.0.0.0/0` trỏ tới `tracker-igw`.
 
-**Cấu trúc đường dẫn (Routes):**
-```
-/ ──► (Tự động chuyển hướng sang /login)
-/login ──► Trang đăng nhập
-/admin
-  /dashboard ──► Dashboard Quản trị viên
-  /users ──► Quản lý người dùng
-/manager
-  /dashboard ──► Dashboard Quản lý
-  /equipment ──► Danh sách thiết bị
-  /equipment/:id ──► Chi tiết thiết bị + Mã QR
-  /tickets ──► Quản lý tất cả phiếu bảo trì
-  /schedules ──► Lịch bảo trì định kỳ
-  /reports ──► Báo cáo & Thống kê
-/technician
-  /my-tickets ──► Phiếu bảo trì được phân công cho Kỹ thuật viên
-/reporter
-  /my-tickets ──► Phiếu sự cố đã gửi của Người báo cáo
-  /report-issue ──► Biểu mẫu gửi báo cáo sự cố mới
-/public
-  /equipment/:id ──► Trang công khai quét mã QR thiết bị (không cần login)
-```
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Internet Gateway đã Attach vào VPC và Bảng tuyến đường Route Table công khai đính kèm vào bên dưới.
+> 
+> ![Cấu hình Internet Gateway](/images/5-Workshop/5.3-S3-vpc/igw-route-setup.png?classes=shadow)
 
-### 3.1.3 Phân quyền người dùng (RBAC)
+---
 
-Hệ thống hỗ trợ 4 vai trò với phân quyền rõ ràng:
+### Bước 5.3.3: Cấu hình Tường lửa ảo (Security Groups)
 
-| Vai trò | Quyền hạn |
-|---|---|
-| **ADMIN** | Toàn quyền hệ thống: Quản lý người dùng, xem dữ liệu, cấu hình hệ thống |
-| **MANAGER** | Quản lý thiết bị, tạo/phân công/đóng ticket, quản lý lịch bảo trì, xem báo cáo |
-| **TECHNICIAN** | Xem ticket được phân công, cập nhật trạng thái ticket, tải ảnh nghiệm thu |
-| **REPORTER** | Gửi báo cáo sự cố thiết bị mới, theo dõi các ticket do chính mình gửi |
+Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
-## 3.2 Bước 2: Bảo mật chống tấn công Brute-Force Đăng nhập
+1. **EC2 Security Group (`tracker-ec2-sg`):**
+   - **Inbound Rules:**
+     - SSH (22) $\rightarrow$ IP cá nhân
+     - HTTP (80) $\rightarrow$ `0.0.0.0/0`
+     - HTTPS (443) $\rightarrow$ `0.0.0.0/0`
+     - Custom TCP (3000) $\rightarrow$ `0.0.0.0/0` (Frontend React)
+     - Custom TCP (8081) $\rightarrow$ `0.0.0.0/0` (Backend Spring Boot API)
+2. **RDS Security Group (`tracker-rds-sg`):**
+   - **Inbound Rules:**
+     - PostgreSQL (5432) $\rightarrow$ Nguồn: ID của `tracker-ec2-sg`.
 
-Triển khai dịch vụ `LoginAttemptService` sử dụng `ConcurrentHashMap` trên RAM để đếm số lần đăng nhập thất bại:
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Inbound Rules của `tracker-ec2-sg` và `tracker-rds-sg` đính kèm vào bên dưới.
+> 
+> ![Cấu hình Security Groups](/images/5-Workshop/5.3-S3-vpc/security-groups-setup.png?classes=shadow)
 
-**Logic xử lý (`LoginAttemptService.java`):**
-```java
-private final ConcurrentHashMap<String, AttemptRecord> usernameAttempts = new ConcurrentHashMap<>();
-private final ConcurrentHashMap<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
+---
 
-private static final int MAX_USERNAME_ATTEMPTS = 5;   // Khóa username sau 5 lần sai
-private static final int MAX_IP_ATTEMPTS = 20;         // Khóa IP sau 20 lần sai
-private static final long LOCK_DURATION_MS = 15 * 60 * 1000; // Khóa trong 15 phút
-```
+### Bước 5.3.4: Triển khai Cơ sở dữ liệu Amazon RDS PostgreSQL
 
-**Mã lỗi HTTP 429 (`ErrorCode.java`):**
-```java
-TOO_MANY_LOGIN_ATTEMPTS(
-    "Quá nhiều lần đăng nhập thất bại. Tài khoản của bạn đã bị khóa tạm thời. Vui lòng thử lại sau 15 phút.",
-    HttpStatus.TOO_MANY_REQUESTS  // HTTP 429
-)
-```
+1. Mở **Amazon RDS Console** $\rightarrow$ Nhấn **Create database**.
+2. Chọn **Standard create** $\rightarrow$ Engine: **PostgreSQL** (Phiên bản 15.x).
+3. Mẫu: **Free Tier** $\rightarrow$ Cấu hình Instance: `db.t4g.micro`.
+4. Đặt tên DB instance: `tracker-maintenance-db`, Master username: `postgres`.
+5. Kết nối: Chọn VPC `Tracker-VPC`, chọn Subnet Group trong Private Subnet, Public access: **No**.
+6. Security group: Chọn `tracker-rds-sg`.
 
-## 3.3 Bước 3: Đóng gói Container với Docker Multi-Stage Builds
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình chi tiết RDS Database `tracker-maintenance-db` và Endpoint kết nối 5432 đính kèm vào bên dưới.
+> 
+> ![Triển khai RDS Database](/images/5-Workshop/5.3-S3-vpc/rds-db-setup.png?classes=shadow)
 
-### 3.3.1 Dockerfile cho Backend
-```dockerfile
-FROM maven:3.9-amazoncorretto-21 AS builder
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
+---
 
-FROM amazoncorretto:21-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+### Bước 5.3.5: Cấu hình Amazon S3 Bucket lưu trữ Ảnh
 
-### 3.3.2 Dockerfile cho Frontend
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json .
-RUN npm ci
-COPY . .
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-RUN npm run build
+1. Mở **Amazon S3 Console** $\rightarrow$ Nhấn **Create bucket**.
+2. Đặt tên Bucket: `tracker-maintenance-images-123`, Vùng: `ap-southeast-2` (Sydney).
+3. Cấu hình **Block Public Access:** Bỏ tích *Block all public access* (Disable).
+4. Lưu tạo bucket, sau đó mở tab **Permissions** $\rightarrow$ Thêm **Bucket Policy**:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "PublicReadGetObject",
+         "Effect": "Allow",
+         "Principal": "*",
+         "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::tracker-maintenance-images-123/*"
+       }
+     ]
+   }
+   ```
+5. Cấu hình quy tắc **CORS** cho phép các phương thức `PUT` và `GET` từ tên miền ứng dụng Web.
 
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/package*.json .
-RUN npm ci --omit=dev
-EXPOSE 3000
-CMD ["node", "node_modules/@react-router/serve/dist/index.js", "build/server/index.js"]
-```
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình tổng quan S3 Bucket và trạng thái Block Public Access đính kèm vào bên dưới.
+> 
+> ![Cấu hình S3 Bucket](/images/5-Workshop/5.3-S3-vpc/s3-bucket-setup.png?classes=shadow)
 
-### 3.3.3 Docker Compose trên máy chủ EC2 (`docker-compose-remote.yml`)
-```yaml
-services:
-  tracker-be:
-    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-be:latest
-    ports:
-      - "8081:8081"
-    environment:
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
-      DB_URL: jdbc:postgresql://tracker-maintenance-db.cvow26so4q44.ap-southeast-2.rds.amazonaws.com:5432/postgres
-      DB_USERNAME: postgres
-      DB_PASSWORD: admin1810
-      JWT_SIGNER_KEY: myTrackerMaintenanceSecretKeyForHS512AlgorithmMustBe64CharsLong!
-      APP_BASE_URL: https://trackermaint.dpdns.org
-      CLOUDFLARE_R2_ENDPOINT: https://s3.ap-southeast-2.amazonaws.com
-      CLOUDFLARE_R2_PUBLICURL: https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com
-      CLOUDFLARE_R2_BUCKETNAME: tracker-maintenance-images-123
-      APP_R2_ACCESS_KEY_ID: ${APP_R2_ACCESS_KEY_ID}
-      APP_R2_SECRET_ACCESS_KEY: ${APP_R2_SECRET_ACCESS_KEY}
-      APP_R2_REGION: ap-southeast-2
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: ap-southeast-2
-        awslogs-group: /tracker-maintenance/backend
-        awslogs-create-group: "true"
-        awslogs-stream: be-logs
-    restart: on-failure
+---
 
-  tracker-fe:
-    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-fe:latest
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: ap-southeast-2
-        awslogs-group: /tracker-maintenance/frontend
-        awslogs-create-group: "true"
-        awslogs-stream: fe-logs
-    depends_on:
-      - tracker-be
-    restart: on-failure
-```
+### Bước 5.3.6: Cấu hình Amazon ECR & Sao chép đa vùng
 
-## 3.4 Bước 4: Tự động hóa luồng CI/CD với GitHub Actions
+1. Mở **Amazon ECR Console** $\rightarrow$ Tạo 2 repository riêng tư: `tracker-be` và `tracker-fe`.
+2. Mở **Private registry** $\rightarrow$ **Replication configuration** $\rightarrow$ Chọn **Add rule**.
+3. Vùng đích: Thêm `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
 
-File cấu hình `.github/workflows/deploy.yml`:
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình danh sách ECR Repository và quy tắc Cross-Region Replication đính kèm vào bên dưới.
+> 
+> ![Cấu hình ECR Replication](/images/5-Workshop/5.3-S3-vpc/ecr-replication-setup.png?classes=shadow)
 
-```yaml
-name: Deploy to EC2 (Tracker Maintenance)
+---
 
-on:
-  push:
-    branches:
-      - main
+### Bước 5.3.7: Khởi tạo Máy chủ Amazon EC2 & Gán Elastic IP
 
-env:
-  AWS_REGION: ap-southeast-2
-  ECR_REGISTRY: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
-  BE_REPO: tracker-be
-  FE_REPO: tracker-fe
+1. Mở **Amazon EC2 Console** $\rightarrow$ Chọn **Launch instance**.
+2. Đặt tên: `tracker-ec2-server`, AMI: **Amazon Linux 2023**, Loại: `t2.micro`.
+3. Mạng: VPC `Tracker-VPC`, Subnet `tracker-public-subnet-1`, Security group `tracker-ec2-sg`.
+4. Nâng cao: IAM instance profile $\rightarrow$ Chọn `tracker-ec2-role`.
+5. Tạo 01 **Elastic IP** và Associate trực tiếp vào máy chủ EC2 (`3.106.194.112`).
+6. SSH vào EC2 và cài đặt Docker & Docker Compose:
+   ```bash
+   sudo yum install docker -y
+   sudo systemctl enable docker && sudo systemctl start docker
+   sudo usermod -aG docker ec2-user
+   ```
 
-jobs:
-  build-and-push:
-    name: Build and Push to AWS ECR
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình EC2 Instance `tracker-ec2-server` cùng Elastic IP đã gắn đính kèm vào bên dưới.
+> 
+> ![Khởi tạo EC2 Instance](/images/5-Workshop/5.3-S3-vpc/ec2-instance-setup.png?classes=shadow)
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+---
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+### Bước 5.3.8: Cấu hình GitHub Secrets & CI/CD Pipeline
 
-      - name: Build and Push Backend
-        run: |
-          cd tracker_maintenance_service
-          docker build -t $ECR_REGISTRY/$BE_REPO:latest .
-          docker push $ECR_REGISTRY/$BE_REPO:latest
+1. Trong GitHub Repository $\rightarrow$ Vào **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+2. Thêm các Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `EC2_HOST`, `EC2_SSH_KEY`.
+3. Push file `.github/workflows/deploy.yml` lên nhánh `main` để kích hoạt luồng tự động build Docker, push ECR và deploy EC2.
 
-      - name: Build and Push Frontend
-        run: |
-          cd tracker_maintenance_ui
-          docker build \
-            --build-arg VITE_API_BASE_URL=https://trackermaint.dpdns.org \
-            -t $ECR_REGISTRY/$FE_REPO:latest .
-          docker push $ECR_REGISTRY/$FE_REPO:latest
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình GitHub Actions tích xanh chạy thành công luồng `Deploy to EC2` đính kèm vào bên dưới.
+> 
+> ![Cấu hình GitHub Actions](/images/5-Workshop/5.3-S3-vpc/github-actions-setup.png?classes=shadow)
 
-  deploy:
-    name: Deploy to EC2
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH into EC2 and Restart Containers
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ec2-user
-            aws ecr get-login-password --region ap-southeast-2 \
-              | docker login --username AWS \
-              --password-stdin 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
-            docker-compose pull
-            docker-compose up -d
-            docker image prune -f
-```
+---
 
-## 3.5 Bước 5: Amazon S3 — Lưu trữ hình ảnh trên Cloud
+### Bước 5.3.9: Cấu hình Route 53 DNS & Chứng chỉ ACM SSL
 
-Toàn bộ ảnh thiết bị và ảnh nghiệm thu được tải lên trực tiếp **Amazon S3** từ Spring Boot bằng **AWS SDK cho Java v2**:
+1. Mở **Route 53 Console** $\rightarrow$ Tạo Hosted Zone cho `trackermaint.dpdns.org`.
+2. Tạo **A Record** trỏ tên miền `trackermaint.dpdns.org` về Elastic IP của EC2 (`3.106.194.112`).
+3. Khởi tạo chứng chỉ **ACM Certificate** tại vùng `us-east-1` (N. Virginia) cho `trackermaint.dpdns.org` để chuẩn bị cho CloudFront.
 
-1. Người dùng gửi file ảnh qua API `POST /equipment/{id}/images`.
-2. Spring Boot `EquipmentService` gọi `S3Client.putObject()` để lưu vào S3.
-3. S3 trả về URL công khai (`https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo.jpg`).
-4. Đường dẫn URL này được lưu lại vào cơ sở dữ liệu PostgreSQL.
-
-## 3.6 Bước 6: Thông báo thời gian thực qua WebSocket
-
-Backend sử dụng **Spring WebSocket** với **giao thức STOMP** truyền qua **SockJS**.
-Frontend `NotificationContext.tsx` lắng nghe trên kênh `/user/queue/notifications` để tự động cập nhật badge số lượng thông báo chưa đọc và tiêu đề thẻ trình duyệt theo thời gian thực.
-
-## 3.7 Bước 7: Quản lý thiết bị qua Mã QR Code
-
-Mỗi thiết bị khi khởi tạo sẽ tự động có một mã QR trỏ đến liên kết công khai:
-`https://trackermaint.dpdns.org/public/equipment/{equipmentId}`
-
-Kỹ thuật viên tại hiện trường chỉ cần dùng camera smartphone quét mã QR dán trên máy là có thể xem ngay chi tiết thông tin, trạng thái hoạt động và lịch sử bảo trì mà không cần đăng nhập.
-
-## 3.8 Bước 8: Quản lý Log tập trung với CloudWatch
-
-Cấu hình driver `awslogs` trong Docker Compose để tự động đẩy stream log về CloudWatch Log Groups:
-- `/tracker-maintenance/backend`
-- `/tracker-maintenance/frontend`
-
-## 3.9 Bước 9: Sao chép ECR đa vùng (Cross-Region Replication)
-
-Cấu hình quy tắc sao chép ECR từ vùng chính Sydney để tự động đồng bộ Docker image sang vùng `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
-
-## 3.10 Bước 10: Tên miền và SSL với Route 53 và ACM
-
-- **Tên miền:** `trackermaint.dpdns.org`
-- **Route 53 A Record:** Trỏ `trackermaint.dpdns.org` về Elastic IP của EC2 (`3.106.194.112`).
-- **Chứng chỉ ACM SSL:** Khởi tạo tại vùng `us-east-1` sẵn sàng tích hợp CloudFront.
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Route 53 A Record trỏ IP đính kèm vào bên dưới.
+> 
+> ![Cấu hình Route 53](/images/5-Workshop/5.3-S3-vpc/route53-acm-setup.png?classes=shadow)

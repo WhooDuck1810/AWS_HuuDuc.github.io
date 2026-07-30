@@ -6,108 +6,86 @@ chapter: false
 pre: " <b> 5.4. </b> "
 ---
 
-# 4. Test Results & Experimentation
+# 5.4. Test Results & Experimentation
 
-## 4.1 Unit Tests — LoginAttemptService
+After completing the infrastructure deployment and CI/CD setup, execute empirical tests to verify system functionality, security controls, and real-time operations.
 
-**Test File:** `tracker_maintenance_service/src/test/java/.../service/LoginAttemptServiceTest.java`
+---
 
-All 5 unit tests pass with a 100% success rate when executing `.\mvnw.cmd test`:
+### Step 5.4.1: Unit Tests — LoginAttemptService Verification
+
+Run backend unit tests to verify in-memory rate limiting:
+```bash
+.\mvnw.cmd test
+```
 
 | Test Case | Description | Result |
 |---|---|---|
-| `testUsernameNotBlockedInitially()` | A fresh username with no attempts should not be blocked | ✅ PASS |
-| `testUsernameBlockedAfterMaxAttempts()` | After 5 failed attempts, the username should be blocked | ✅ PASS |
-| `testIpBlockedAfterMaxAttempts()` | After 20 failed attempts from the same IP, the IP should be blocked | ✅ PASS |
-| `testSuccessfulLoginResetsAttempts()` | A successful login should reset the failed attempt counter | ✅ PASS |
-| `testUnblockAfterLockoutPeriod()` | After the 15-minute lockout window expires, the account should be unblocked | ✅ PASS |
+| `testUsernameNotBlockedInitially()` | Fresh user with 0 attempts is not blocked | ✅ PASS |
+| `testUsernameBlockedAfterMaxAttempts()` | Account locked after 5 failed attempts | ✅ PASS |
+| `testIpBlockedAfterMaxAttempts()` | IP locked after 20 failed attempts | ✅ PASS |
+| `testSuccessfulLoginResetsAttempts()` | Successful login resets counter | ✅ PASS |
+| `testUnblockAfterLockoutPeriod()` | Lockout expires after 15 minutes | ✅ PASS |
 
-**Test Output:**
-```
-[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
-[INFO] BUILD SUCCESS
-```
+---
 
-## 4.2 Brute-Force Protection — Manual Testing
+### Step 5.4.2: Brute-Force Protection — Manual Lockout Test
 
-**Test Scenario:** Attempt to log in with an incorrect password 6 times in succession.
+Simulate an automated password guessing attack against `/auth/token`:
 
-| Attempt | Username | Password | HTTP Response |
-|---|---|---|---|
-| 1st | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
-| 2nd | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
-| 3rd | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
-| 4th | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
-| 5th | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
-| 6th | admin | wrongpass | `429 Too Many Requests` — **Account Locked** |
-| 7th (correct) | admin | Admin123! | `429 Too Many Requests` — **Still locked** |
-
-**Result:** The account is correctly locked after 5 consecutive failures, and even a correct password cannot bypass the lockout during the 15-minute window. ✅
-
-## 4.3 CI/CD Pipeline — Deployment Test
-
-**Test:** Push a trivial code change to the `main` branch and observe the full automated deployment.
-
-**GitHub Actions Run Timeline:**
-```
-00:00 - Push commit to main
-00:02 - GitHub Actions workflow triggered
-00:15 - AWS credentials configured
-00:30 - Docker build (Backend) started
-02:30 - Backend JAR built (Maven compile + package)
-03:00 - Backend Docker image pushed to ECR ap-southeast-2
-03:05 - Docker build (Frontend) started
-04:00 - Frontend React build completed
-04:20 - Frontend Docker image pushed to ECR ap-southeast-2
-04:25 - SSH connection established to EC2 (3.106.194.112)
-04:35 - ECR login on EC2 successful
-04:40 - docker-compose pull completed (new images downloaded)
-04:55 - docker-compose up -d completed (containers restarted)
-05:00 - Old images pruned
-05:05 - Workflow SUCCESS ✅
-```
-
-**Total deployment time:** ~5 minutes from `git push` to live production update. ✅
-
-## 4.4 Real-Time Notification — WebSocket Test
-
-**Test Scenario:**
-1. Open Browser Tab 1 (logged in as MANAGER) and Browser Tab 2 (logged in as TECHNICIAN).
-2. Manager creates a new ticket and assigns it to the Technician.
-
-**Actual Result:**
-- Tab 2 (Technician) shows a toast notification in real time without refreshing the page.
-- Tab 2 title updates from `My Tickets | Tracker Maintenance` to `(1) My Tickets | Tracker Maintenance`.
-- The notification bell icon shows a red badge with count `1`. ✅
-
-## 4.5 S3 Image Upload — Test
-
-**Test:** Upload a PNG equipment photo from the Equipment Detail page.
-
-| Step | Action | Result |
+| Attempt | Password | HTTP Response Code |
 |---|---|---|
-| 1 | Click "Upload Image" button on equipment `EQ-001` | File picker opens |
-| 2 | Select a 2 MB JPEG photo | File selected |
-| 3 | Click "Upload" | Loading spinner shows |
-| 4 | After 1.2 seconds | Success toast: "Image uploaded successfully" |
-| 5 | Page refreshes equipment image | Image loads from S3 URL |
-| 6 | Open S3 bucket console | File visible in `equipment/eq-001/` prefix |
+| 1st – 5th | `wrongpass` | `401 Unauthorized` |
+| 6th | `wrongpass` | `429 Too Many Requests` (Account Locked) |
+| 7th | `Admin123!` (Correct) | `429 Too Many Requests` (Lockout Preserved) |
 
-**S3 Public URL Format:** `https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo-1234567890.jpg` ✅
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your browser/Postman screenshot showing the HTTP 429 Too Many Requests response here.
+> 
+> ![Brute Force Lockout Test](/images/5-Workshop/5.4-S3-onprem/brute-force-test.png?classes=shadow)
 
-## 4.6 QR Code Scan — Test
+---
 
-**Test:** Scan the QR code displayed on the Equipment Detail page using a smartphone.
+### Step 5.4.3: Real-Time WebSocket Notification Test
 
-**Result:** Smartphone camera recognized the QR code, browser opened `https://trackermaint.dpdns.org/public/equipment/1`, and displayed full equipment information including status, model, serial number, location, and maintenance history — all without requiring login. ✅
+1. Open Manager Dashboard in Browser Tab 1 and Technician View in Browser Tab 2.
+2. Manager creates and assigns a maintenance ticket to the Technician.
 
-## 4.7 CloudWatch Logs — Test
+**Results:**
+- Tab 2 receives a real-time toast notification without page refresh.
+- Browser tab title updates to `(1) My Tickets | Tracker Maintenance`.
+- Notification bell displays a red badge count `1`. ✅
 
-- CloudWatch Log Group `/tracker-maintenance/backend` appeared automatically within 30 seconds of the first container startup.
-- All Spring Boot startup logs, SQL queries, and HTTP request logs were visible in real time in the CloudWatch Logs console. ✅
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your web application screenshot showing the real-time WebSocket toast and browser tab title update here.
+> 
+> ![WebSocket Notification Test](/images/5-Workshop/5.4-S3-onprem/websocket-test.png?classes=shadow)
 
-## 4.8 ECR Cross-Region Replication — Test
+---
 
-**Test:** After configuring ECR replication rules, push a new Docker image to ECR Sydney.
+### Step 5.4.4: S3 Image Upload & QR Code Scan Test
 
-**Result:** Within 60 seconds of the push completing, both `tracker-be` and `tracker-fe` repositories (with the `:latest` tag) appeared automatically in ECR `ap-southeast-1` (Singapore) without any manual intervention. ✅
+1. Upload an equipment photo from the Equipment Detail page.
+2. Scan the generated QR code using a smartphone.
+
+**Results:**
+- Image is uploaded directly to S3 and renders via `https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo.jpg`.
+- Smartphone camera opens `https://trackermaint.dpdns.org/public/equipment/1` displaying full equipment details without requiring login. ✅
+
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your web application screenshot showing the QR Code display and S3 uploaded photo here.
+> 
+> ![S3 and QR Code Test](/images/5-Workshop/5.4-S3-onprem/qrcode-s3-test.png?classes=shadow)
+
+---
+
+### Step 5.4.5: CloudWatch Centralized Logging Verification
+
+Verify that application container logs stream to AWS CloudWatch Logs in real time:
+- Backend Log Group: `/tracker-maintenance/backend`
+- Frontend Log Group: `/tracker-maintenance/frontend`
+
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS CloudWatch Logs Console screenshot showing live container log streams here.
+> 
+> ![CloudWatch Logs Test](/images/5-Workshop/5.4-S3-onprem/cloudwatch-logs-test.png?classes=shadow)

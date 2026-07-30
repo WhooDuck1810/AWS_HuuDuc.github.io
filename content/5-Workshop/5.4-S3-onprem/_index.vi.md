@@ -6,97 +6,86 @@ chapter: false
 pre: " <b> 5.4. </b> "
 ---
 
-# 4. Kết quả kiểm thử & Thực nghiệm
+# 5.4. Kết quả kiểm thử & Thực nghiệm
 
-## 4.1 Unit Test — LoginAttemptService
+Sau khi hoàn tất triển khai hạ tầng và luồng CI/CD, tiến hành các bài kiểm thử thực nghiệm để xác minh tính năng, bảo mật và khả năng vận hành thời gian thực.
 
-**File kiểm thử:** `tracker_maintenance_service/src/test/java/.../service/LoginAttemptServiceTest.java`
+---
 
-Toàn bộ 5 kịch bản Unit Test đều vượt qua với tỷ lệ thành công 100% khi chạy lệnh `.\mvnw.cmd test`:
+### Bước 5.4.1: Unit Test — Xác minh dịch vụ LoginAttemptService
+
+Chạy kịch bản kiểm thử đơn vị Backend:
+```bash
+.\mvnw.cmd test
+```
 
 | Kịch bản Test | Mô tả | Kết quả |
 |---|---|---|
-| `testUsernameNotBlockedInitially()` | Tên người dùng mới chưa có lần đăng nhập sai sẽ không bị khóa | ✅ ĐẠT |
-| `testUsernameBlockedAfterMaxAttempts()` | Sau 5 lần đăng nhập sai liên tiếp, tên người dùng sẽ bị khóa | ✅ ĐẠT |
-| `testIpBlockedAfterMaxAttempts()` | Sau 20 lần đăng nhập sai từ cùng 1 IP, địa chỉ IP sẽ bị khóa | ✅ ĐẠT |
-| `testSuccessfulLoginResetsAttempts()` | Đăng nhập thành công sẽ reset đếm số lần sai về 0 | ✅ ĐẠT |
-| `testUnblockAfterLockoutPeriod()` | Sau khi hết 15 phút khóa tạm thời, tài khoản được tự động mở khóa | ✅ ĐẠT |
+| `testUsernameNotBlockedInitially()` | User mới chưa sai 0 lần không bị khóa | ✅ ĐẠT |
+| `testUsernameBlockedAfterMaxAttempts()` | Khóa tài khoản sau 5 lần sai liên tiếp | ✅ ĐẠT |
+| `testIpBlockedAfterMaxAttempts()` | Khóa IP sau 20 lần sai liên tiếp | ✅ ĐẠT |
+| `testSuccessfulLoginResetsAttempts()` | Đăng nhập thành công reset bộ đếm | ✅ ĐẠT |
+| `testUnblockAfterLockoutPeriod()` | Tự mở khóa sau 15 phút | ✅ ĐẠT |
 
-**Kết xuất kết quả (Output):**
-```
-[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
-[INFO] BUILD SUCCESS
-```
+---
 
-## 4.2 Bảo vệ Brute-Force — Kiểm thử thủ công
+### Bước 5.4.2: Bảo vệ Brute-Force — Thử nghiệm Khóa tài khoản
 
-**Kịch bản kiểm thử:** Thử đăng nhập liên tục với mật khẩu sai 6 lần.
+Giả lập tấn công dò mật khẩu tự động vào API `/auth/token`:
 
-| Lần thử | Username | Password | Mã phản hồi HTTP |
-|---|---|---|---|
-| 1st | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
-| 2nd | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
-| 3rd | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
-| 4th | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
-| 5th | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
-| 6th | admin | wrongpass | `429 Too Many Requests` — **Tài khoản bị khóa** |
-| 7th (Đúng) | admin | Admin123! | `429 Too Many Requests` — **Vẫn bị khóa** |
+| Lần thử | Mật khẩu nhập | Mã phản hồi HTTP |
+|---|---|---|
+| Lần 1 – 5 | `wrongpass` | `401 Unauthorized` |
+| Lần 6 | `wrongpass` | `429 Too Many Requests` (Tài khoản bị khóa) |
+| Lần 7 | `Admin123!` (Đúng) | `429 Too Many Requests` (Vẫn bị khóa trong 15p) |
 
-**Kết luận:** Tài khoản bị khóa chính xác sau 5 lần nhập sai liên tiếp, ngay cả khi nhập đúng mật khẩu ở lần thứ 7 cũng không thể vượt qua trong khoảng thời gian 15 phút. ✅
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình phản hồi HTTP 429 Too Many Requests trên Postman hoặc trình duyệt và dán vào bên dưới.
+> 
+> ![Kiểm thử Chống Brute Force](/images/5-Workshop/5.4-S3-onprem/brute-force-test.png?classes=shadow)
 
-## 4.3 Luồng CI/CD Pipeline — Kiểm thử triển khai
+---
 
-**Thực nghiệm:** Push một thay đổi nhỏ lên nhánh `main` và theo dõi luồng triển khai tự động.
+### Bước 5.4.3: Kiểm thử Thông báo Real-Time WebSocket
 
-**Tiến trình chạy trên GitHub Actions:**
-```
-00:00 - Push commit lên main
-00:02 - GitHub Actions Workflow được kích hoạt
-00:15 - Xắc thực quyền AWS Credentials thành công
-00:30 - Bắt đầu Build Docker Backend
-02:30 - File JAR Backend được đóng gói (Maven compile + package)
-03:00 - Push Docker image Backend lên ECR ap-southeast-2
-03:05 - Bắt đầu Build Docker Frontend
-04:00 - Build xong ứng dụng React Frontend
-04:20 - Push Docker image Frontend lên ECR ap-southeast-2
-04:25 - Kết nối SSH thành công vào EC2 (3.106.194.112)
-04:35 - Đăng nhập ECR trên EC2 thành công
-04:40 - Chạy docker-compose pull tải image mới về
-04:55 - Chạy docker-compose up -d khởi động lại container
-05:00 - Xóa các Docker image cũ không dùng (prune)
-05:05 - Workflow thành công THÀNH CÔNG ✅
-```
+1. Mở Dashboard Quản lý ở Thẻ 1 và Giao diện Kỹ thuật viên ở Thẻ 2.
+2. Manager tạo và phân công ticket bảo trì cho Technician.
 
-**Tổng thời gian triển khai:** ~5 phút từ lúc `git push` đến khi hệ thống cập nhật live trên production. ✅
+**Kết quả:**
+- Thẻ 2 nhận thông báo Toast thời gian thực không cần F5 tải lại trang.
+- Tiêu đề tab đổi dạng `(1) My Tickets | Tracker Maintenance`.
+- Quả chuông hiển thị badge số đỏ `1`. ✅
 
-## 4.4 Thông báo thời gian thực — Kiểm thử WebSocket
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình ứng dụng Web hiển thị Toast thông báo WebSocket và tiêu đề tab đính kèm vào bên dưới.
+> 
+> ![Kiểm thử WebSocket Realtime](/images/5-Workshop/5.4-S3-onprem/websocket-test.png?classes=shadow)
 
-**Kịch bản:**
-1. Mở Thẻ trình duyệt 1 (Đăng nhập vai trò MANAGER) và Thẻ 2 (Đăng nhập vai trò TECHNICIAN).
-2. Manager tạo mới một ticket bảo trì và phân công cho Technician.
+---
 
-**Kết quả thực tế:**
-- Thẻ 2 (Technician) hiển thị thông báo dạng Toast ngay lập tức mà không cần tải lại trang.
-- Tiêu đề Thẻ 2 tự động cập nhật từ `My Tickets | Tracker Maintenance` thành `(1) My Tickets | Tracker Maintenance`.
-- Biểu tượng quả chuông hiển thị badge màu đỏ với số `1`. ✅
+### Bước 5.4.4: Kiểm thử Upload Ảnh S3 & Quét mã QR Code
 
-## 4.5 Tải ảnh lên S3 — Kiểm thử
+1. Tải ảnh thiết bị từ trang Chi tiết Thiết bị.
+2. Dùng camera smartphone quét mã QR dán trên máy.
 
-**Thực nghiệm:** Tải lên một ảnh thiết bị dạng JPEG từ trang Chi tiết Thiết bị.
+**Kết quả:**
+- Ảnh tải lên trực tiếp S3 và hiển thị qua URL `https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo.jpg`.
+- Smartphone mở trang `https://trackermaint.dpdns.org/public/equipment/1` hiển thị đầy đủ thông tin mà không cần đăng nhập. ✅
 
-- Sau 1.2 giây, ảnh được tải thành công lên S3 và giao diện hiển thị ảnh trực tiếp từ đường dẫn công khai:
-`https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo-1234567890.jpg` ✅
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình hiển thị mã QR Code và ảnh tải lên S3 trên giao diện đính kèm vào bên dưới.
+> 
+> ![Kiểm thử S3 và mã QR](/images/5-Workshop/5.4-S3-onprem/qrcode-s3-test.png?classes=shadow)
 
-## 4.6 Quét mã QR — Kiểm thử
+---
 
-**Thực nghiệm:** Dùng smartphone quét mã QR dán trên thiết bị.
+### Bước 5.4.5: Kiểm thử Giám sát Log CloudWatch
 
-**Kết quả:** Trình duyệt di động mở liên kết `https://trackermaint.dpdns.org/public/equipment/1` và hiển thị đầy đủ thông tin thiết bị, trạng thái, model, số sê-ri, vị trí và lịch sử bảo trì mà không yêu cầu đăng nhập. ✅
+Xác minh log ứng dụng đẩy về CloudWatch Logs thời gian thực:
+- Backend Log Group: `/tracker-maintenance/backend`
+- Frontend Log Group: `/tracker-maintenance/frontend`
 
-## 4.7 Log tập trung CloudWatch — Kiểm thử
-
-Log Group `/tracker-maintenance/backend` xuất hiện tự động trên CloudWatch Console và hiển thị đầy đủ thông tin SQL, thông báo hệ thống và lịch sử đăng nhập theo thời gian thực. ✅
-
-## 4.8 Sao chép ECR đa vùng — Kiểm thử
-
-Sau khi push Docker image lên ECR Sydney, chỉ trong vòng 60 giây, cả 2 repository `tracker-be` và `tracker-fe` tự động xuất hiện tại ECR `ap-southeast-1` (Singapore) mà không cần thao tác thủ công. ✅
+> [!NOTE]
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình CloudWatch Logs Console xem các dòng stream log thực tế đính kèm vào bên dưới.
+> 
+> ![Kiểm thử CloudWatch Logs](/images/5-Workshop/5.4-S3-onprem/cloudwatch-logs-test.png?classes=shadow)

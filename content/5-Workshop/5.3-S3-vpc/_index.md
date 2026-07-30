@@ -6,323 +6,161 @@ chapter: false
 pre: " <b> 5.3. </b> "
 ---
 
-# 3. Implementation Steps
+# 5.3. Implementation Steps
 
-## 3.1 Step 1: Full-Stack Web Application Development
+Follow these step-by-step instructions to build the infrastructure, deploy containers, and configure automated pipelines for the **Tracker Maintenance System** on AWS.
 
-### 3.1.1 Backend — Spring Boot REST API
+---
 
-The backend is built using **Spring Boot 3.5** with **Java 21** and follows a clean layered architecture:
+### Step 5.3.1: Create Custom VPC & Isolated Subnets
 
-**Directory Structure:**
-```
-tracker_maintenance_service/
-├── src/main/java/com/procare_system/tracker_maintenance_service/
-│   ├── configuration/         # Spring Security, CORS, Beans
-│   │   ├── ApplicationInitConfig.java   # Seeds default admin user
-│   │   └── SecurityConfig.java          # JWT filter chain
-│   ├── controller/            # REST API endpoints
-│   │   ├── AuthenticationController.java
-│   │   ├── EquipmentController.java
-│   │   ├── TicketController.java
-│   │   ├── UserController.java
-│   │   ├── ScheduleController.java
-│   │   └── NotificationController.java
-│   ├── service/               # Business logic layer
-│   │   ├── AuthenticationService.java
-│   │   ├── LoginAttemptService.java     # Brute-force protection
-│   │   ├── EquipmentService.java
-│   │   ├── TicketService.java
-│   │   └── NotificationService.java
-│   ├── entity/                # JPA entities (DB tables)
-│   ├── repository/            # Spring Data JPA repositories
-│   ├── exception/             # Custom exceptions & error codes
-│   │   └── ErrorCode.java     # TOO_MANY_LOGIN_ATTEMPTS (HTTP 429)
-│   └── dto/                   # Request/Response DTOs
-└── src/main/resources/
-    └── application.yml        # DB, JWT, S3 config via env vars
-```
+1. Open the **Amazon VPC Console** $\rightarrow$ Click **Create VPC**.
+2. Select **VPC only** $\rightarrow$ Set Name tag to `Tracker-VPC` $\rightarrow$ Set IPv4 CIDR block to `10.1.0.0/16`.
+3. In the navigation pane, choose **Subnets** $\rightarrow$ Click **Create subnet**:
+   - **Public Subnet:** Name `tracker-public-subnet-1`, CIDR `10.1.1.0/24`, Availability Zone `ap-southeast-2a`.
+   - **Private Subnet:** Name `tracker-private-subnet-1`, CIDR `10.1.2.0/24`, Availability Zone `ap-southeast-2b`.
 
-**Key API Endpoints:**
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS VPC Console screenshot showing the `Tracker-VPC` details and Subnet allocation here.
+> 
+> ![VPC and Subnet Setup](/images/5-Workshop/5.3-S3-vpc/vpc-subnet-setup.png?classes=shadow)
 
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `POST` | `/auth/token` | Public | Login and receive JWT token |
-| `GET` | `/users` | ADMIN | List all users |
-| `POST` | `/users` | ADMIN | Create a new user |
-| `GET` | `/equipment` | AUTH | List all equipment |
-| `POST` | `/equipment` | MANAGER | Create equipment with QR code |
-| `GET` | `/equipment/{id}` | AUTH | Get equipment details |
-| `GET` | `/public/equipment/{id}` | Public | QR code public equipment lookup |
-| `GET` | `/tickets` | AUTH | List maintenance tickets |
-| `POST` | `/tickets` | REPORTER/MANAGER | Create a new ticket |
-| `PATCH` | `/tickets/{id}/status` | TECHNICIAN/MANAGER | Update ticket status |
-| `GET` | `/notifications` | AUTH | Get user notifications |
-| `PATCH` | `/notifications/{id}/read` | AUTH | Mark notification as read |
-| `GET` | `/schedules` | MANAGER | List maintenance schedules |
+---
 
-### 3.1.2 Frontend — React Router v7 with TypeScript
+### Step 5.3.2: Configure Internet Gateway & Route Tables
 
-The frontend is built using **React Router v7** in **Server-Side Rendering (SSR)** mode with TypeScript and TailwindCSS.
+1. In the VPC Console, choose **Internet Gateways** $\rightarrow$ Click **Create internet gateway** $\rightarrow$ Name: `tracker-igw`.
+2. Select `tracker-igw` $\rightarrow$ Click **Actions** $\rightarrow$ Choose **Attach to VPC** $\rightarrow$ Select `Tracker-VPC`.
+3. Choose **Route Tables** $\rightarrow$ Select the Public Route Table $\rightarrow$ Click **Edit routes** $\rightarrow$ Add route: `0.0.0.0/0` targeted to `tracker-igw`.
 
-**Route Structure:**
-```
-/ ──► (redirect to /login)
-/login ──► LoginPage
-/admin
-  /dashboard ──► Admin Dashboard
-  /users ──► User Management
-/manager
-  /dashboard ──► Manager Dashboard
-  /equipment ──► Equipment List
-  /equipment/:id ──► Equipment Detail + QR Code
-  /tickets ──► Ticket Management (all tickets)
-  /schedules ──► Maintenance Schedule
-  /reports ──► Reports & Analytics
-/technician
-  /my-tickets ──► Assigned Tickets for Technician
-/reporter
-  /my-tickets ──► Submitted Tickets for Reporter
-  /report-issue ──► New Ticket Submission Form
-/public
-  /equipment/:id ──► Public Equipment Scan Page (no login required)
-```
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Internet Gateway attachment and Route Table configuration here.
+> 
+> ![Internet Gateway Setup](/images/5-Workshop/5.3-S3-vpc/igw-route-setup.png?classes=shadow)
 
-**Key Frontend Components:**
-- **`AppLayout.tsx`:** Main layout wrapper with sidebar navigation, header with notification bell, and role-based menu items.
-- **`NotificationDropdown.tsx`:** Dropdown component showing unread notifications, connected to real-time WebSocket updates.
-- **`NotificationContext.tsx`:** React Context providing shared notification state, unread count, and WebSocket connection lifecycle across the entire app.
-- **`QrCodeDisplay.tsx`:** Renders a QR code for each equipment item using the `qrcode.react` library.
-- **`favicon.svg`:** A custom SVG favicon with a gradient shield and wrench/checkmark icon representing the maintenance theme.
+---
 
-**Browser Tab Title Decorator:**
-The `NotificationContext` dynamically updates `document.title` based on the active route and unread notification count:
-- Default: `Tracker Maintenance`
-- With unread notifications: `(3) Ticket Management | Tracker Maintenance`
+### Step 5.3.3: Configure Virtual Firewalls (Security Groups)
 
-### 3.1.3 Role-Based Access Control (RBAC)
+Create two Security Groups inside `Tracker-VPC` to enforce strict network isolation:
 
-The system supports 4 user roles with distinct permissions:
+1. **EC2 Security Group (`tracker-ec2-sg`):**
+   - **Inbound Rules:**
+     - SSH (22) $\rightarrow$ Your IP
+     - HTTP (80) $\rightarrow$ `0.0.0.0/0`
+     - HTTPS (443) $\rightarrow$ `0.0.0.0/0`
+     - Custom TCP (3000) $\rightarrow$ `0.0.0.0/0` (Frontend React)
+     - Custom TCP (8081) $\rightarrow$ `0.0.0.0/0` (Backend Spring Boot API)
+2. **RDS Security Group (`tracker-rds-sg`):**
+   - **Inbound Rules:**
+     - PostgreSQL (5432) $\rightarrow$ Source: `tracker-ec2-sg` (Security Group ID).
 
-| Role | Permissions |
-|---|---|
-| **ADMIN** | Full system access: manage users, view all data, system configuration |
-| **MANAGER** | Manage equipment, create/assign/close tickets, manage schedules, view reports |
-| **TECHNICIAN** | View assigned tickets, update ticket status, upload maintenance evidence photos |
-| **REPORTER** | Submit new fault reports (tickets), view their own submitted tickets |
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Inbound Rules for `tracker-ec2-sg` and `tracker-rds-sg` here.
+> 
+> ![Security Groups Setup](/images/5-Workshop/5.3-S3-vpc/security-groups-setup.png?classes=shadow)
 
-## 3.2 Step 2: Brute-Force Anti-Login Protection
+---
 
-A custom `LoginAttemptService` was implemented using Java's thread-safe `ConcurrentHashMap` to track login attempts without any external cache dependency:
+### Step 5.3.4: Provision Amazon RDS PostgreSQL Database
 
-**Logic (`LoginAttemptService.java`):**
-```java
-private final ConcurrentHashMap<String, AttemptRecord> usernameAttempts = new ConcurrentHashMap<>();
-private final ConcurrentHashMap<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
+1. Open the **Amazon RDS Console** $\rightarrow$ Click **Create database**.
+2. Choose **Standard create** $\rightarrow$ Engine: **PostgreSQL** (Version 15.x).
+3. Template: **Free Tier** $\rightarrow$ Instance class: `db.t4g.micro`.
+4. Settings: DB instance identifier `tracker-maintenance-db`, Master username `postgres`.
+5. Connectivity: Network `Tracker-VPC`, Subnet group in Private Subnet, Public access: **No**.
+6. Security group: Choose `tracker-rds-sg`.
 
-private static final int MAX_USERNAME_ATTEMPTS = 5;   // Lock username after 5 failures
-private static final int MAX_IP_ATTEMPTS = 20;         // Lock IP after 20 failures
-private static final long LOCK_DURATION_MS = 15 * 60 * 1000; // 15-minute lockout
-```
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS RDS Console screenshot showing the `tracker-maintenance-db` details and Endpoint connection string here.
+> 
+> ![RDS Database Setup](/images/5-Workshop/5.3-S3-vpc/rds-db-setup.png?classes=shadow)
 
-**Error Code (`ErrorCode.java`):**
-```java
-TOO_MANY_LOGIN_ATTEMPTS(
-    "Too many failed login attempts. Your account has been temporarily locked. Please try again in 15 minutes.",
-    HttpStatus.TOO_MANY_REQUESTS  // HTTP 429
-)
-```
+---
 
-## 3.3 Step 3: Docker Containerization with Multi-Stage Builds
+### Step 5.3.5: Configure Amazon S3 Bucket for Media Storage
 
-### 3.3.1 Backend Dockerfile (Multi-Stage)
-```dockerfile
-FROM maven:3.9-amazoncorretto-21 AS builder
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
+1. Open the **Amazon S3 Console** $\rightarrow$ Click **Create bucket**.
+2. Bucket name: `tracker-maintenance-images-123`, Region: `ap-southeast-2` (Sydney).
+3. Object Ownership: ACLs disabled $\rightarrow$ **Block Public Access settings:** Uncheck *Block all public access* (Disable).
+4. Save creation, then open **Permissions** tab $\rightarrow$ Add **Bucket Policy**:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "PublicReadGetObject",
+         "Effect": "Allow",
+         "Principal": "*",
+         "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::tracker-maintenance-images-123/*"
+       }
+     ]
+   }
+   ```
+5. Configure **CORS** rules to allow `PUT` and `GET` from the web application domain.
 
-FROM amazoncorretto:21-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS S3 Console screenshot showing the bucket overview and Block Public Access status here.
+> 
+> ![S3 Bucket Setup](/images/5-Workshop/5.3-S3-vpc/s3-bucket-setup.png?classes=shadow)
 
-### 3.3.2 Frontend Dockerfile (Multi-Stage)
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json .
-RUN npm ci
-COPY . .
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-RUN npm run build
+---
 
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/package*.json .
-RUN npm ci --omit=dev
-EXPOSE 3000
-CMD ["node", "node_modules/@react-router/serve/dist/index.js", "build/server/index.js"]
-```
+### Step 5.3.6: Configure Amazon ECR & Cross-Region Replication
 
-### 3.3.3 Docker Compose (`docker-compose-remote.yml`)
-```yaml
-services:
-  tracker-be:
-    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-be:latest
-    ports:
-      - "8081:8081"
-    environment:
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
-      DB_URL: jdbc:postgresql://tracker-maintenance-db.cvow26so4q44.ap-southeast-2.rds.amazonaws.com:5432/postgres
-      DB_USERNAME: postgres
-      DB_PASSWORD: admin1810
-      JWT_SIGNER_KEY: myTrackerMaintenanceSecretKeyForHS512AlgorithmMustBe64CharsLong!
-      APP_BASE_URL: https://trackermaint.dpdns.org
-      CLOUDFLARE_R2_ENDPOINT: https://s3.ap-southeast-2.amazonaws.com
-      CLOUDFLARE_R2_PUBLICURL: https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com
-      CLOUDFLARE_R2_BUCKETNAME: tracker-maintenance-images-123
-      APP_R2_ACCESS_KEY_ID: ${APP_R2_ACCESS_KEY_ID}
-      APP_R2_SECRET_ACCESS_KEY: ${APP_R2_SECRET_ACCESS_KEY}
-      APP_R2_REGION: ap-southeast-2
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: ap-southeast-2
-        awslogs-group: /tracker-maintenance/backend
-        awslogs-create-group: "true"
-        awslogs-stream: be-logs
-    restart: on-failure
+1. Open the **Amazon ECR Console** $\rightarrow$ Create 2 private repositories: `tracker-be` and `tracker-fe`.
+2. Navigate to **Private registry** $\rightarrow$ **Replication configuration** $\rightarrow$ Click **Add rule**.
+3. Destination regions: Add `ap-southeast-1` (Singapore) and `us-east-2` (Ohio).
 
-  tracker-fe:
-    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-fe:latest
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: ap-southeast-2
-        awslogs-group: /tracker-maintenance/frontend
-        awslogs-create-group: "true"
-        awslogs-stream: fe-logs
-    depends_on:
-      - tracker-be
-    restart: on-failure
-```
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS ECR Console screenshot showing the repositories and Cross-Region Replication rules here.
+> 
+> ![ECR Setup](/images/5-Workshop/5.3-S3-vpc/ecr-replication-setup.png?classes=shadow)
 
-## 3.4 Step 4: CI/CD Pipeline with GitHub Actions
+---
 
-Workflow file `.github/workflows/deploy.yml`:
+### Step 5.3.7: Launch Amazon EC2 Virtual Server & Elastic IP
 
-```yaml
-name: Deploy to EC2 (Tracker Maintenance)
+1. Open the **Amazon EC2 Console** $\rightarrow$ Click **Launch instance**.
+2. Name: `tracker-ec2-server`, AMI: **Amazon Linux 2023**, Instance type: `t2.micro`.
+3. Network settings: VPC `Tracker-VPC`, Subnet `tracker-public-subnet-1`, Security group `tracker-ec2-sg`.
+4. Advanced details: IAM instance profile $\rightarrow$ Select `tracker-ec2-role`.
+5. Allocate an **Elastic IP** and associate it with the EC2 instance (`3.106.194.112`).
+6. SSH into EC2 and install Docker & Docker Compose:
+   ```bash
+   sudo yum install docker -y
+   sudo systemctl enable docker && sudo systemctl start docker
+   sudo usermod -aG docker ec2-user
+   ```
 
-on:
-  push:
-    branches:
-      - main
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS EC2 Console screenshot showing the `tracker-ec2-server` status and Elastic IP association here.
+> 
+> ![EC2 Instance Setup](/images/5-Workshop/5.3-S3-vpc/ec2-instance-setup.png?classes=shadow)
 
-env:
-  AWS_REGION: ap-southeast-2
-  ECR_REGISTRY: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
-  BE_REPO: tracker-be
-  FE_REPO: tracker-fe
+---
 
-jobs:
-  build-and-push:
-    name: Build and Push to AWS ECR
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+### Step 5.3.8: Configure GitHub Secrets & CI/CD Pipeline
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+1. In your GitHub repository, navigate to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+2. Add secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `EC2_HOST`, `EC2_SSH_KEY`.
+3. Push `.github/workflows/deploy.yml` to the `main` branch to trigger automatic Docker building, ECR pushing, and EC2 deployment.
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your GitHub Actions screenshot showing the green successful `Deploy to EC2` workflow run here.
+> 
+> ![GitHub Actions CI/CD](/images/5-Workshop/5.3-S3-vpc/github-actions-setup.png?classes=shadow)
 
-      - name: Build and Push Backend
-        run: |
-          cd tracker_maintenance_service
-          docker build -t $ECR_REGISTRY/$BE_REPO:latest .
-          docker push $ECR_REGISTRY/$BE_REPO:latest
+---
 
-      - name: Build and Push Frontend
-        run: |
-          cd tracker_maintenance_ui
-          docker build \
-            --build-arg VITE_API_BASE_URL=https://trackermaint.dpdns.org \
-            -t $ECR_REGISTRY/$FE_REPO:latest .
-          docker push $ECR_REGISTRY/$FE_REPO:latest
+### Step 5.3.9: Configure Route 53 DNS & ACM SSL Certificate
 
-  deploy:
-    name: Deploy to EC2
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH into EC2 and Restart Containers
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ec2-user
-            aws ecr get-login-password --region ap-southeast-2 \
-              | docker login --username AWS \
-              --password-stdin 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
-            docker-compose pull
-            docker-compose up -d
-            docker image prune -f
-```
+1. Open **Route 53 Console** $\rightarrow$ Create Hosted Zone for `trackermaint.dpdns.org`.
+2. Create an **A Record** pointing `trackermaint.dpdns.org` to the EC2 Elastic IP (`3.106.194.112`).
+3. Request an **ACM Certificate** in `us-east-1` (N. Virginia) for `trackermaint.dpdns.org` to prepare for CloudFront integration.
 
-## 3.5 Step 5: Amazon S3 — Cloud Image Storage
-
-All equipment photos and maintenance evidence images are uploaded directly to **Amazon S3** from the Spring Boot backend using the **AWS SDK for Java v2**.
-
-1. Technician/Manager sends image via `POST /equipment/{id}/images`.
-2. Spring Boot `EquipmentService` uploads file using `S3Client.putObject()`.
-3. S3 returns public URL (`https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo.jpg`).
-4. URL is saved into PostgreSQL database.
-
-## 3.6 Step 6: Real-Time Notifications via WebSocket
-
-Backend uses **Spring WebSocket** with **STOMP messaging protocol** over **SockJS**.
-Frontend `NotificationContext.tsx` listens on `/user/queue/notifications` and updates unread badge count & document title dynamically.
-
-## 3.7 Step 7: QR Code Equipment Tracking
-
-Each equipment item has an auto-generated QR code pointing to:
-`https://trackermaint.dpdns.org/public/equipment/{equipmentId}`
-
-Anyone scanning the physical QR code can instantly view equipment details, current operational status, and maintenance history without needing to log in.
-
-## 3.8 Step 8: CloudWatch Centralized Logging
-
-Configured `awslogs` driver streams stdout/stderr to CloudWatch Log Groups:
-- `/tracker-maintenance/backend`
-- `/tracker-maintenance/frontend`
-
-## 3.9 Step 9: ECR Cross-Region Replication
-
-Configured ECR replication rules in Sydney registry to automatically sync images to `ap-southeast-1` (Singapore) and `us-east-2` (Ohio).
-
-## 3.10 Step 10: DNS and SSL with Route 53 and ACM
-
-- **Domain:** `trackermaint.dpdns.org`
-- **Route 53 A Record:** Points `trackermaint.dpdns.org` to EC2 Elastic IP (`3.106.194.112`).
-- **ACM SSL Certificate:** Provisioned in `us-east-1` for CloudFront integration.
+> [!NOTE]
+> 📸 **Screenshot Placeholder:** Attach your AWS Route 53 Console screenshot showing the A Record details here.
+> 
+> ![Route 53 Setup](/images/5-Workshop/5.3-S3-vpc/route53-acm-setup.png?classes=shadow)

@@ -6,7 +6,7 @@ chapter: false
 pre: " <b> 5.1. </b> "
 ---
 
-# 1. Introduction
+# 5.1. Introduction
 
 <div style="text-align: center; margin: 20px 0;">
 
@@ -17,13 +17,13 @@ pre: " <b> 5.1. </b> "
 
 <br>
 
-## 1.1 Project Overview
+## 1. Project Overview
 
 **Tracker Maintenance System** is a full-stack cloud-native web application designed to manage, track, and maintain industrial equipment throughout its lifecycle. The system enables organizations to digitize their entire equipment maintenance workflow — from reporting equipment faults and assigning technicians to scheduling periodic maintenance, uploading photo evidence, and generating reports — all through a unified, role-based web platform.
 
 The project was developed and deployed entirely on **Amazon Web Services (AWS)** as part of the internship program under **Đề tài 3: Xây dựng và phát triển ứng dụng Web trên nền tảng Cloud** (Application Development on Cloud Platform).
 
-## 1.2 Business Problem Statement
+## 2. Business Problem Statement
 
 In traditional industrial and facility management environments, equipment maintenance is typically managed through paper-based logs, spreadsheets, or disconnected on-premises software. These approaches suffer from several key limitations:
 
@@ -35,7 +35,7 @@ In traditional industrial and facility management environments, equipment mainte
 
 The **Tracker Maintenance System** resolves all of the above problems by providing a cloud-hosted, role-based web platform with real-time notifications, QR code asset tracking, S3 photo storage, and built-in brute-force login protection.
 
-## 1.3 System Goals
+## 3. System Goals
 
 The workshop covers the following core technical objectives:
 
@@ -50,7 +50,7 @@ The workshop covers the following core technical objectives:
 9. **Centralized Logging with CloudWatch:** Stream all application container logs (backend and frontend) to AWS CloudWatch Log Groups for centralized, searchable, real-time monitoring.
 10. **ECR Cross-Region Replication:** Configure Amazon ECR registry replication rules so that Docker images pushed to the primary Sydney region are automatically synchronized to secondary regions (Singapore, Ohio), enabling future multi-region deployment.
 
-## 1.4 Architecture Overview
+## 4. Architecture Overview
 
 The system follows a **multi-tier, cloud-native architecture** deployed inside the AWS `ap-southeast-2 (Sydney)` region:
 
@@ -99,70 +99,7 @@ GitHub Actions CI/CD Pipeline
   push to main ──► Build Docker ──► Push to ECR Sydney ──► SSH Deploy EC2
 ```
 
-### Key Data Flows:
-
-**User Login Flow with Brute-Force Protection:**
-```
-Browser ──► POST /auth/token ──► AuthenticationController
-                                        │
-                                        ▼
-                              LoginAttemptService.check(IP, username)
-                                        │
-                          ┌─────────────┴──────────────┐
-                     < 5 failures                 ≥ 5 failures
-                          │                             │
-                          ▼                             ▼
-                 AuthenticationService         HTTP 429 Too Many Requests
-                 validateCredentials()         (Locked 15 minutes)
-                          │
-                 ┌────────┴────────┐
-              Success           Failure
-                 │                  │
-                 ▼                  ▼
-          JWT Token            Record Failure
-          (HTTP 200)           LoginAttemptService.recordFailure()
-```
-
-**Equipment Ticket Notification Flow:**
-```
-Manager creates/updates Ticket
-         │
-         ▼
-TicketService ──► NotificationService
-                         │
-                         ▼
-               WebSocket Broker (SockJS/STOMP)
-                         │
-            ─────────────┼─────────────
-            │            │            │
-            ▼            ▼            ▼
-      Technician      Reporter     Manager
-      Browser         Browser      Browser
-   (Badge count++)  (Badge count++) (Browser Tab Title updates)
-   "(3) My Tickets | Tracker Maintenance"
-```
-
-**CI/CD Deployment Flow:**
-```
-git push origin main
-         │
-         ▼
-GitHub Actions Workflow Triggered
-         │
-    ┌────┴─────┐
-    │  Job 1:  │  build-and-push
-    │ Build BE │──► docker build tracker-be ──► docker push ECR Sydney
-    │ Build FE │──► docker build tracker-fe ──► docker push ECR Sydney
-    └────┬─────┘
-         │ (ECR Sydney auto-replicates to Singapore, Ohio)
-         ▼
-    ┌────┴─────┐
-    │  Job 2:  │  deploy
-    │ SSH EC2  │──► aws ecr login ──► docker-compose pull ──► docker-compose up -d
-    └──────────┘
-```
-
-## 1.5 Technology Stack Summary
+## 5. Technology Stack Summary
 
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
