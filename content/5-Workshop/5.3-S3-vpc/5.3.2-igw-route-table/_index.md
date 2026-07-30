@@ -8,13 +8,22 @@ pre: " <b> 5.3.2. </b> "
 
 # 5.3.2 Configure Internet Gateway & Route Tables
 
-In this step, connect the Public Subnet to the Internet Gateway.
+In this step, verify that the Internet Gateway (`Tracker-VPC-igw`) is attached to `Tracker-VPC-vpc` and routed through the Public Route Table.
 
-1. In the VPC Console, choose **Internet Gateways** => Click **Create internet gateway** => Name: `tracker-igw`.
-2. Select `tracker-igw` => Click **Actions** => Choose **Attach to VPC** => Select `Tracker-VPC`.
-3. Choose **Route Tables** => Select the Public Route Table => Click **Edit routes** => Add route: `0.0.0.0/0` targeted to `tracker-igw`.
+### 1. Internet Gateway Details
+- **IGW Name:** `Tracker-VPC-igw`
+- **IGW ID:** `igw-0f51a5a491c36f5ae`
+- **State:** **Attached** ✅
+- **Attached VPC:** `vpc-0a6e694c7f200c12e | Tracker-VPC-vpc`
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Internet Gateway attachment and Route Table configuration here.
-> 
-> ![Internet Gateway Setup](/images/5-Workshop/5.3-S3-vpc/igw-route-setup.png?classes=shadow)
+### 2. Route Table Routing
+- **Public Route Table:** `Tracker-VPC-rtb-public`
+- **Destination:** `0.0.0.0/0`
+- **Target:** `igw-0f51a5a491c36f5ae` (`Tracker-VPC-igw`)
+
+<div style="text-align: center; margin: 20px 0;">
+
+  ![Internet Gateway Setup](/images/5-Workshop/5.3-S3-vpc/5.3.2-igw-route-table/igw-setup.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.3. Internet Gateway (Tracker-VPC-igw) details showing Attached state to Tracker-VPC-vpc.</div>
+</div>

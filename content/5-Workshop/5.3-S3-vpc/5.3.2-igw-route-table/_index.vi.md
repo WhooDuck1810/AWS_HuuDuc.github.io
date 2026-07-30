@@ -8,13 +8,22 @@ pre: " <b> 5.3.2. </b> "
 
 # 5.3.2 Cấu hình Internet Gateway & Bảng tuyến đường (Route Tables)
 
-Trong bước này, mở kết nối Internet cho dải Public Subnet.
+Trong bước này, xác nhận Cổng Internet (Internet Gateway `Tracker-VPC-igw`) đã được kết nối (Attached) tới `Tracker-VPC-vpc` và định tuyến ra ngoài Internet qua Bảng tuyến đường công khai.
 
-1. Trên VPC Console, chọn **Internet Gateways** => Chọn **Create internet gateway** => Đặt tên: `tracker-igw`.
-2. Chọn `tracker-igw` => Nhấn **Actions** => Chọn **Attach to VPC** => Chọn `Tracker-VPC`.
-3. Chọn **Route Tables** => Chọn Public Route Table => Nhấn **Edit routes** => Thêm tuyến đường `0.0.0.0/0` trỏ tới `tracker-igw`.
+### 1. Thông số Internet Gateway
+- **Tên IGW:** `Tracker-VPC-igw`
+- **Mã IGW ID:** `igw-0f51a5a491c36f5ae`
+- **Trạng thái (State):** **Attached** (Đã kết nối) ✅
+- **VPC kết nối:** `vpc-0a6e694c7f200c12e | Tracker-VPC-vpc`
 
-> [!NOTE]
-> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Internet Gateway đã Attach vào VPC và Bảng tuyến đường Route Table công khai đính kèm vào bên dưới.
-> 
-> ![Cấu hình Internet Gateway](/images/5-Workshop/5.3-S3-vpc/igw-route-setup.png?classes=shadow)
+### 2. Định tuyến Route Table
+- **Public Route Table:** `Tracker-VPC-rtb-public`
+- **Đích đến (Destination):** `0.0.0.0/0`
+- **Mục tiêu (Target):** `igw-0f51a5a491c36f5ae` (`Tracker-VPC-igw`)
+
+<div style="text-align: center; margin: 20px 0;">
+
+  ![Cấu hình Internet Gateway](/images/5-Workshop/5.3-S3-vpc/5.3.2-igw-route-table/igw-setup.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.3.3. Chi tiết Internet Gateway (Tracker-VPC-igw) trạng thái Attached thành công vào Tracker-VPC-vpc.</div>
+</div>

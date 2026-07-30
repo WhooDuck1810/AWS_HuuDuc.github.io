@@ -20,21 +20,25 @@ Before beginning the deployment of the Tracker Maintenance System on AWS, prepar
 
 ---
 
-### Step 5.2.2: Create IAM User (`tracker-s3-uploader-2`) for Programmatic S3 & Deployment Access
+### Step 5.2.2: Create Unified IAM User (`tracker-s3-uploader-2`)
 
-To enable programmatic media uploads from the Spring Boot backend to Amazon S3 and automated deployment without using the AWS Root account or `admin1` user:
+To enable programmatic media uploads from the Spring Boot backend to Amazon S3 as well as Docker image pushes to Amazon ECR via GitHub Actions, create a single unified IAM User (`tracker-s3-uploader-2`):
 
 1. Navigate to the **AWS IAM Console** => **Users** => Click **Create user**.
 2. Set the username to `tracker-s3-uploader-2`.
 3. Under **Permissions options**, choose **Attach policies directly**.
-4. Search for and select policies for S3 storage access (e.g. `AmazonS3FullAccess` or custom S3 upload policy) and ECR access (`AmazonEC2ContainerRegistryFullAccess`).
+4. Attach the following 2 AWS managed policies:
+   - `AmazonEC2ContainerRegistryFullAccess` (For ECR Docker image pushing)
+   - `AmazonS3FullAccess` (For media photo upload and retrieval)
 5. Confirm creation, then navigate to **Security credentials** => **Create access key** => Choose **Command Line Interface (CLI)**.
 6. Copy and save the generated **Access Key ID** and **Secret Access Key** securely into your `.env` and GitHub Secrets.
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS IAM Console screenshot showing the `tracker-s3-uploader-2` user details and permissions here.
-> 
-> ![IAM User Setup](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
+<div style="text-align: center; margin: 20px 0;">
+
+  ![IAM User Setup](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.2.1. Unified IAM User (tracker-s3-uploader-2) with attached AmazonEC2ContainerRegistryFullAccess and AmazonS3FullAccess policies.</div>
+</div>
 
 ---
 
@@ -49,14 +53,9 @@ To grant the EC2 instance permission to pull Docker images from Amazon ECR and p
    - `CloudWatchAgentServerPolicy`
 4. Name the role `tracker-ec2-role` and click **Create role**.
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS IAM Console screenshot showing the `tracker-ec2-role` with attached policies here.
-> 
-> ![IAM Role Setup](/images/5-Workshop/5.2-Prerequisite/iam-role-setup.png?classes=shadow)
-
 ---
 
-### Step 5.2.4: Why Use IAM Accounts (`tracker-s3-uploader-2`) Instead of the Root Account or `admin1`?
+### Step 5.2.4: Why Use IAM User (`tracker-s3-uploader-2`) Instead of the Root Account or `admin1`?
 
 - **Principle of Least Privilege (PoLP):** Isolates S3 uploading and deployment permissions specifically to `tracker-s3-uploader-2` rather than exposing full administrative permissions (`admin1` / Root).
 - **Security Isolation:** If an application credential is ever compromised, the blast radius is strictly limited to S3/ECR operations, protecting overall AWS account administration.

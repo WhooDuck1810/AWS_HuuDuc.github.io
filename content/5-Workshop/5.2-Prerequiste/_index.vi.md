@@ -20,21 +20,25 @@ Trước khi bắt đầu triển khai dự án **Tracker Maintenance System** t
 
 ---
 
-### Bước 5.2.2: Khởi tạo IAM User (`tracker-s3-uploader-2`) cho Upload S3 & Triển khai
+### Bước 5.2.2: Khởi tạo IAM User duy nhất (`tracker-s3-uploader-2`) cho S3 & ECR
 
-Để cấp quyền cho Backend Spring Boot tải ảnh nghiệm thu lên S3 và hỗ trợ tự động hóa triển khai mà không cần dùng tài khoản Root hoặc `admin1`:
+Để cấp quyền cho Backend Spring Boot tải ảnh nghiệm thu lên S3 và cho phép GitHub Actions đẩy Docker Image lên Amazon ECR, khởi tạo 01 IAM User duy nhất (`tracker-s3-uploader-2`):
 
 1. Truy cập **AWS IAM Console** => **Users** => Chọn **Create user**.
 2. Nhập tên user: `tracker-s3-uploader-2`.
 3. Tại phần **Permissions options**, chọn **Attach policies directly**.
-4. Tìm và tích chọn chính sách quyền lưu trữ S3 (ví dụ `AmazonS3FullAccess` hoặc chính sách S3 tùy chỉnh) và quyền ECR (`AmazonEC2ContainerRegistryFullAccess`).
+4. Gắn 02 chính sách quyền chuẩn của AWS:
+   - `AmazonEC2ContainerRegistryFullAccess` (Quyền quản lý và push Docker image ECR)
+   - `AmazonS3FullAccess` (Quyền upload và truy xuất hình ảnh S3)
 5. Xác nhận tạo user, sau đó vào mục **Security credentials** => **Create access key** => Chọn **Command Line Interface (CLI)**.
 6. Lưu lại cặp khóa **Access Key ID** và **Secret Access Key** để nạp vào `.env` backend và GitHub Secrets.
 
-> [!NOTE]
-> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình chi tiết IAM User `tracker-s3-uploader-2` kèm chính sách đã gắn trên AWS Console và dán vào vị trí bên dưới.
-> 
-> ![Khởi tạo IAM User](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
+<div style="text-align: center; margin: 20px 0;">
+
+  ![Khởi tạo IAM User](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.2.1. Chi tiết IAM User (tracker-s3-uploader-2) với 2 chính sách AmazonEC2ContainerRegistryFullAccess và AmazonS3FullAccess đính kèm.</div>
+</div>
 
 ---
 
@@ -49,15 +53,10 @@ Cấp quyền cho máy chủ EC2 kéo Docker Image từ ECR và đẩy log về 
    - `CloudWatchAgentServerPolicy`
 4. Đặt tên Role: `tracker-ec2-role` và nhấn **Create role**.
 
-> [!NOTE]
-> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình IAM Role `tracker-ec2-role` hiển thị 2 chính sách quyền đã gắn trên AWS Console và dán vào vị trí bên dưới.
-> 
-> ![Khởi tạo IAM Role](/images/5-Workshop/5.2-Prerequisite/iam-role-setup.png?classes=shadow)
-
 ---
 
 ### Bước 5.2.4: Tại sao cần dùng IAM User (`tracker-s3-uploader-2`) thay vì Root Account hoặc `admin1`?
 
-- **Nguyên tắc Quyền Tối thiểu (Principle of Least Privilege):** Chỉ cấp đúng quyền upload S3/ECR cho ứng dụng qua `tracker-s3-uploader-2` thay vì dùng tài khoản có toàn quyền quản trị (`admin1` / Root).
-- **Cách ly Rủi ro Bảo mật:** Nếu Access Key bị lộ, hacker chỉ có thể thao tác trên S3 bucket/ECR mà không thể can thiệp hoặc xóa các tài nguyên AWS khác.
+- **Nguyên tắc Quyền Tối thiểu (Principle of Least Privilege):** Chỉ cấp đúng quyền S3/ECR cho ứng dụng qua `tracker-s3-uploader-2` thay vì dùng tài khoản quản trị toàn quyền (`admin1` / Root).
+- **Cách ly Rủi ro Bảo mật:** Nếu Access Key bị lộ, rủi ro chỉ giới hạn trong phạm vi S3/ECR mà không làm mất kiểm soát toàn bộ tài khoản AWS.
 - **Khả năng Truy vết (Auditability):** Mọi hành động gọi API S3/ECR đều được AWS CloudTrail ghi lại rõ danh tính `tracker-s3-uploader-2`.
