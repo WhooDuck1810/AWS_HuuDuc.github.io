@@ -1,20 +1,90 @@
 ---
-title : "Khó khăn & Hướng phát triển"
-date : 2024-01-01
-weight : 6
-chapter : false
-pre : " <b> 5.6. </b> "
+title: "Khó khăn & Hướng phát triển"
+date: 2026-07-30
+weight: 6
+chapter: false
+pre: " <b> 5.6. </b> "
 ---
-### Khó khăn & Hướng phát triển
 
-#### Khó khăn Gặp phải
+# 6. Khó khăn & Hướng phát triển
 
-* **Lỗi phân quyền mạng ẩn (ENI)**: Trong giai đoạn đầu đưa hàm Lambda `Process_ESP32_Tracker_Telemetry` vào mạng con Private VPC, hệ thống đã từ chối quyền truy cập mạng. Sau khi tra cứu tài liệu lỗi `CreateNetworkInterface` trên AWS Knowledge Center, tác giả nhận ra hàm thiếu đặc quyền tạo giao diện mạng ảo nội bộ và đã khắc phục bằng cách gắn thêm policy `AWSLambdaVPCAccessExecutionRole` cho IAM Role.
-* **Xung đột chính sách bảo mật (Bucket Policy vs. Endpoint Policy)**: Khi thiết lập bảo mật cho bucket `tracker-maintenance-storage`, việc khóa toàn bộ truy cập public quá sớm—trước khi chỉ định chính xác định danh ARN của VPC Endpoint—đã làm cho chính hàm Lambda nội bộ bị từ chối quyền cấp S3 Presigned URL (Access Denied). Tác giả đã phải lần vết qua CloudWatch logs và dùng AWS CLI để gỡ rối, từ đó điều chỉnh lại trình tự cấu hình.
-* **Xử lý dữ liệu cảm biến không đồng nhất**: Các gói tin (payload) gửi từ mạch ESP32 đôi khi bị gián đoạn hoặc sai định dạng JSON do nhiễu sóng mạng hoặc pin yếu. Điều này ban đầu gây ra lỗi crash cho hệ thống Backend. Tác giả đã phải bổ sung cơ chế kiểm tra tính hợp lệ của dữ liệu đầu vào (data validation) và các khối `try-catch` nghiêm ngặt hơn cho hàm Lambda.
+## 6.1 Khó khăn gặp phải & Giải pháp
 
-#### Hướng phát triển Tương lai
+### 6.1.1 Lỗi đường dẫn Windows vs. Linux khi Build React Router
+**Vấn đề:** Khi chạy `npm run build` trên hệ điều hành Windows, file bundle `build/server/index.js` bị nhúng các dấu gạch ngược đường dẫn kiểu Windows (`build\client`). Khi đưa Docker image lên môi trường Linux container trên EC2, thư viện `@react-router/serve` không thể tìm thấy tài nguyên, gây ra lỗi HTTP 404 cho toàn bộ file JS/CSS.
 
-* **Triển khai Hạ tầng dưới dạng mã (IaC)**: Chuyển đổi toàn bộ quy trình thiết lập thủ công trên Web Console (VPC, Subnets, Lambda, Endpoint, IAM, S3) sang dạng mã nguồn quản lý tập trung bằng AWS CloudFormation hoặc Terraform. Điều này giúp dễ dàng nhân bản môi trường để phục vụ hàng ngàn thiết bị IoT chỉ bằng một câu lệnh triển khai.
-* **Tích hợp giao thức MQTT với AWS IoT Core**: Nhằm tối ưu hóa thời lượng pin cho thiết bị ESP32 và đảm bảo kết nối ổn định trong điều kiện mạng yếu, hệ thống dự kiến sẽ chuyển từ việc gọi HTTP REST API (qua API Gateway) sang giao thức MQTT hạng nhẹ chuyên dụng cho IoT thông qua dịch vụ AWS IoT Core.
-* **Xây dựng Dashboard Quản trị Thiết bị (Fleet Management)**: Đồng bộ các chỉ số rời rạc từ CloudWatch Alarms và log hệ thống lên một giao diện giám sát tổng thể. Giao diện này sẽ hiển thị trực quan bản đồ vị trí, dung lượng pin, và cảnh báo lỗi phần cứng của toàn bộ cụm thiết bị tracker, giúp đội ngũ kỹ thuật dễ dàng điều phối công tác bảo trì ngoài thực địa.
+**Giải pháp:** Chuyển toàn bộ quy trình build Docker Image sang môi trường Linux Runner của GitHub Actions. Việc build trên Ubuntu giúp các ký tự phân cách đường dẫn luôn là dấu gạch chéo `/` chuẩn Linux. Nguyên tắc: **Không bao giờ build Docker Image của Frontend trực tiếp trên Windows**.
+
+### 6.1.2 Giới hạn bộ nhớ RAM trên EC2 Free Tier (1 GB RAM)
+**Vấn đề:** Chạy đồng thời cả Backend Spring Boot (JVM) và Frontend React (Node.js) trên instance `t2.micro` (1 GB RAM) dẫn đến tình trạng tràn bộ nhớ RAM (OOM) làm container bị sập.
+
+**Giải pháp:** Cấu hình giới hạn bộ nhớ heap cho JVM trong `docker-compose.yml`:
+```yaml
+JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
+```
+Giới hạn bộ nhớ heap tối đa ở mức 512 MB giúp hệ thống luôn còn đủ RAM trống cho Node.js và các tiến trình của hệ điều hành Linux.
+
+### 6.1.3 Yêu cầu xác minh tài khoản khi cấu hình CloudFront
+**Vấn đề:** Khi tạo CloudFront Distribution, AWS Console hiển thị thông báo lỗi yêu cầu xác minh tài khoản (*"Your account must be verified before you can add new CloudFront resources"*).
+
+**Tác động:** Việc kích hoạt CloudFront CDN tạm thời chờ phản hồi xác minh từ AWS Support. Tuy nhiên, các bước chuẩn bị (ACM SSL tại `us-east-1`, Route 53 DNS) đã hoàn tất 100%. Ứng dụng vẫn hoạt động bình thường qua kết nối trực tiếp Route 53.
+
+### 6.1.4 Kết nối mạng giữa EC2 và RDS Private Subnet
+**Vấn đề:** Ban đầu máy chủ EC2 không thể kết nối tới cơ sở dữ liệu RDS trong Private Subnet (bị lỗi Connection Timeout).
+
+**Giải pháp:** Cập nhật quy tắc Inbound của RDS Security Group, cho phép kết nối cổng 5432 trực tiếp từ ID Security Group của EC2.
+
+### 6.1.5 Lỗi CORS WebSocket phía sau Proxy
+**Vấn đề:** Kết nối SockJS WebSocket từ trình duyệt bị từ chối do lỗi CORS khi gọi qua tên miền `trackermaint.dpdns.org`.
+
+**Giải pháp:** Cập nhật `WebSocketConfig` của Spring Boot với `setAllowedOriginPatterns("*")` và bổ sung tên miền `https://trackermaint.dpdns.org` vào danh sách Allowed Origins của `SecurityConfig`.
+
+## 6.2 Hướng phát triển trong tương lai
+
+### 6.2.1 Triển khai Đa vùng Active-Active (Multi-Region)
+- Khởi tạo thêm máy chủ EC2 tại vùng `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
+- Sử dụng chiến lược Matrix Deployment của GitHub Actions để deploy tự động đồng thời lên cả 3 máy chủ EC2.
+- Cấu hình Latency-Based Routing trên AWS Route 53 để tự động điều hướng người dùng đến máy chủ có độ trễ thấp nhất.
+
+### 6.2.2 Tích hợp Amazon CloudFront CDN
+- Hoàn tất kích hoạt CloudFront Distribution cho S3 và Frontend sau khi AWS xác minh tài khoản.
+- Áp dụng Origin Access Control (OAC) để bảo mật luồng truy cập S3.
+
+### 6.2.3 Nâng cấp cơ sở dữ liệu Amazon Aurora Global Database
+- Chuyển đổi từ RDS PostgreSQL sang Amazon Aurora PostgreSQL bằng dịch vụ AWS DMS.
+- Cấu hình Aurora Global Database với cluster chính tại Sydney và các cluster Read-Replica tại Singapore và Ohio.
+
+### 6.2.4 Tự động hóa hạ tầng bằng Infrastructure as Code (AWS CDK)
+- Định nghĩa 100% tài nguyên AWS bằng mã nguồn TypeScript sử dụng **AWS CDK v2**.
+- Tự động hóa việc khởi tạo toàn bộ môi trường Cloud chỉ với 1 lệnh (`cdk deploy`).
+
+### 6.2.5 Tự động mở rộng (Auto Scaling Group & Load Balancer)
+- Thay thế EC2 đơn lẻ bằng nhóm Auto Scaling Group (ASG) đặt phía sau Application Load Balancer (ALB).
+- Tự động tăng/giảm số lượng máy chủ EC2 dựa trên tải CPU thực tế.
+
+### 6.2.6 Giám sát nâng cao với CloudWatch Dashboards & Alarms
+- Xây dựng CloudWatch Dashboard theo dõi trực quan hiệu năng hệ thống.
+- Cấu hình cảnh báo tự động qua Email/SMS khi phát hiện tấn công dò mật khẩu (tăng đột biến lỗi HTTP 429).
+
+### 6.2.7 Lập lịch bảo trì tự động với AWS EventBridge
+- Tự động gửi thông báo nhắc nhở lịch bảo trì định kỳ sắp tới qua AWS EventBridge Scheduler kết hợp Amazon SES và WebSocket.
+
+---
+
+## Tổng kết bài lab
+
+Bài lab đã hoàn thành xuất sắc việc triển khai một ứng dụng Web Full-Stack hoàn chỉnh trên nền tảng Cloud AWS. Hệ thống **Tracker Maintenance System** tích hợp thành công hơn 10 dịch vụ AWS:
+
+- ✅ **Xác thực an toàn** với JWT + Chống tấn công Brute-Force (Khóa HTTP 429)
+- ✅ **Máy chủ Cloud** trên Amazon EC2 đóng gói bằng Docker
+- ✅ **Cơ sở dữ liệu quản lý** trên Amazon RDS PostgreSQL (Private Subnet)
+- ✅ **Lưu trữ Cloud** trên Amazon S3 cho hình ảnh thiết bị
+- ✅ **Thông báo thời gian thực** qua WebSocket (SockJS/STOMP)
+- ✅ **Quản lý tài sản qua mã QR** với trang tra cứu công khai
+- ✅ **Tự động hóa CI/CD** qua GitHub Actions → ECR → EC2
+- ✅ **Sao chép ECR đa vùng** qua ECR Replication Rules
+- ✅ **Quản lý Log tập trung** trên CloudWatch Logs
+- ✅ **Tên miền & SSL toàn cầu** qua Route 53 + Chứng chỉ ACM (`us-east-1`)
+- 🔄 **CloudFront CDN** — Đã cấu hình, chờ AWS xác minh tài khoản
+
+Hệ thống hiện đang hoạt động trực tuyến tại địa chỉ **https://trackermaint.dpdns.org**.

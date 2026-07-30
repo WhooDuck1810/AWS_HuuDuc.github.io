@@ -1,13 +1,52 @@
 ---
-title : "Dọn dẹp tài nguyên"
-date : 2024-01-01
-weight : 5
-chapter : false
-pre : " <b> 5.5. </b> "
+title: "Dọn dẹp tài nguyên"
+date: 2026-07-30
+weight: 5
+chapter: false
+pre: " <b> 5.5. </b> "
 ---
-### Thu hồi và Dọn dẹp Tài nguyên
-Sau khi hoàn tất các kịch bản kiểm thử thực tế cho luồng chẩn đoán và bảo trì thiết bị định vị ESP32, toàn bộ tài nguyên hạ tầng đám mây thử nghiệm đã được tiến hành thu hồi nhằm tối ưu hóa ngân sách và triệt tiêu nguy cơ phát sinh cước phí ngoài ý muốn trên tài khoản AWS:
 
-* **Làm sạch không gian lưu trữ S3**: Xóa bỏ vĩnh viễn toàn bộ các tệp nhật ký lỗi phần cứng (crash logs) và các bản vá phần mềm (firmware OTA) thử nghiệm bên trong bucket `tracker-maintenance-storage` để giải phóng dung lượng.
-* **Vô hiệu hóa VPC Endpoints**: Tiến hành gỡ bỏ Gateway VPC Endpoint chuyên dụng cho S3, đồng thời xóa các bản ghi định tuyến nội bộ khỏi Route Table của các Private Subnet thuộc `Tracker-VPC` để đưa cấu hình mạng về trạng thái gốc.
-* **Hủy hệ thống Giám sát & Báo động**: Xóa bộ lọc chỉ số `TrackerHardwareErrorFilter` và gỡ bỏ các Alarm cảnh báo lỗi cảm biến trên dịch vụ Amazon CloudWatch. Đồng thời, hủy chủ đề (Topic) trên Amazon SNS để ngắt luồng gửi email tự động điều phối bảo trì.
+# 5. Dọn dẹp tài nguyên
+
+Khi hoàn thành bài lab hoặc khi không còn nhu cầu sử dụng hệ thống, hãy thực hiện các bước sau để tránh phát sinh chi phí AWS ngoài ý muốn:
+
+## 5.1 Tạm dừng máy chủ EC2 (Stop Instance)
+
+Nếu muốn giữ lại cấu hình để sử dụng cho lần sau:
+1. Truy cập **EC2 → Instances** trên AWS Console.
+2. Chọn máy chủ EC2 → **Instance State → Stop**.
+3. Máy chủ EC2 khi ở trạng thái Stop sẽ **không phát sinh chi phí compute**, chỉ tính phí lưu trữ ổ cứng EBS (~$0.08/GB/tháng).
+
+## 5.2 Tạm dừng cơ sở dữ liệu RDS
+
+1. Truy cập **RDS → Databases**.
+2. Chọn database `tracker-maintenance-db` → **Actions → Stop temporarily**.
+3. RDS cho phép tạm dừng tối đa 7 ngày (sau 7 ngày AWS sẽ tự động bật lại). Trong thời gian tạm dừng, bạn chỉ trả phí lưu trữ dữ liệu.
+
+## 5.3 Xóa tài nguyên trên S3 (Tùy chọn)
+
+1. Truy cập **S3 → tracker-maintenance-images-123**.
+2. Chọn toàn bộ file ảnh → **Delete**.
+3. Bucket rỗng sẽ không phát sinh chi phí lưu trữ.
+
+## 5.4 Xóa Docker Image trên ECR (Tùy chọn)
+
+1. Truy cập **ECR → Private Repositories**.
+2. Chọn `tracker-be` và `tracker-fe` → Xóa các tag image `:latest`.
+
+## 5.5 Xóa Log Groups trên CloudWatch (Tùy chọn)
+
+1. Truy cập **CloudWatch → Log Groups**.
+2. Chọn `/tracker-maintenance/backend` và `/tracker-maintenance/frontend` → **Actions → Delete**.
+
+## 5.6 Xóa hoàn toàn tài nguyên (Khi kết thúc thực tập)
+
+Nếu muốn hủy bỏ hoàn toàn môi trường:
+1. **Terminate** (Xóa vĩnh viễn) máy chủ EC2.
+2. **Delete** cơ sở dữ liệu RDS PostgreSQL.
+3. **Delete** S3 Bucket (xóa hết dữ liệu bên trong trước khi xóa bucket).
+4. **Delete** các ECR Repositories.
+5. **Delete** chứng chỉ SSL ACM tại `us-east-1`.
+6. **Delete** Route 53 Hosted Zone.
+7. **Revoke** Access Key của IAM User.
+8. **Delete** IAM Role của EC2.

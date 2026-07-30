@@ -1,97 +1,316 @@
 ---
-title : "Các bước triển khai - Tracker Maintenance"
-date : 2024-01-01 
-weight : 3
-chapter : false
-pre : " <b> 5.3. </b> "
+title: "Các bước thực hiện"
+date: 2026-07-30
+weight: 3
+chapter: false
+pre: " <b> 5.3. </b> "
 ---
-### Các bước triển khai chi tiết
 
-#### Bước 1: Thiết lập VPC riêng biệt, cô lập (Isolated Private VPC)
-Quá trình xây dựng môi trường mạng cô lập để đặt toàn bộ luồng xử lý dữ liệu bảo trì thiết bị vào một vùng an toàn:
+# 3. Các bước thực hiện
 
-Khởi tạo một VPC tùy chỉnh có tên là **Tracker-VPC** với khối IP CIDR là `10.1.0.0/16` làm dải mạng riêng chính.
+## 3.1 Bước 1: Phát triển ứng dụng Web Full-Stack
 
-![Danh sách VPC](/images/5-Workshop/5.3-Implementation_Steps/tracker-vpc-list.png?classes=shadow)
+### 3.1.1 Backend — Spring Boot REST API
 
-> [!NOTE]
-> Danh sách VPC hiển thị VPC tùy chỉnh với CIDR 10.1.0.0/16 dành riêng cho hệ thống Tracker Maintenance
+Backend được xây dựng trên **Spring Boot 3.5** sử dụng **Java 21** với kiến trúc phân tầng chuẩn:
 
-Chia các dải mạng con (subnets) thành các phân tầng cô lập: Public Subnets (chứa các thành phần tiếp xúc với Internet công cộng) và Private Subnets (chứa các giao diện mạng nội bộ của các dịch vụ tính toán để cô lập hoàn toàn IP của chúng khỏi Internet Gateway). Hệ thống được phân bổ đều trên hai Availability Zones (us-east-1a và us-east-1b) để đảm bảo tính dự phòng.
+**Cấu trúc thư mục:**
+```
+tracker_maintenance_service/
+├── src/main/java/com/procare_system/tracker_maintenance_service/
+│   ├── configuration/         # Cấu hình Security, CORS, Beans
+│   │   ├── ApplicationInitConfig.java   # Khởi tạo tài khoản Admin mặc định
+│   │   └── SecurityConfig.java          # Cấu hình chuỗi lọc JWT Filter Chain
+│   ├── controller/            # Các endpoint REST API
+│   │   ├── AuthenticationController.java
+│   │   ├── EquipmentController.java
+│   │   ├── TicketController.java
+│   │   ├── UserController.java
+│   │   ├── ScheduleController.java
+│   │   └── NotificationController.java
+│   ├── service/               # Tầng xử lý logic nghiệp vụ
+│   │   ├── AuthenticationService.java
+│   │   ├── LoginAttemptService.java     # Bảo vệ chống tấn công Brute-force
+│   │   ├── EquipmentService.java
+│   │   ├── TicketService.java
+│   │   └── NotificationService.java
+│   ├── entity/                # Các JPA Entity (Bảng trong DB)
+│   ├── repository/            # Tầng truy vấn dữ liệu Spring Data JPA
+│   ├── exception/             # Xử lý ngoại lệ & Mã lỗi tùy chỉnh
+│   │   └── ErrorCode.java     # TOO_MANY_LOGIN_ATTEMPTS (HTTP 429)
+│   └── dto/                   # Đối tượng truyền dữ liệu Request/Response DTO
+└── src/main/resources/
+    └── application.yml        # Cấu hình DB, JWT, S3 qua biến môi trường
+```
 
-![Danh sách Subnet](/images/5-Workshop/5.3-Implementation_Steps/tracker-subnet-list.png?classes=shadow)
+**Các API Endpoint chính:**
 
-> [!NOTE]
-> Danh sách các Subnet được phân bổ trên các phân tầng Public và Private của kiến trúc bảo trì
+| Phương thức | Endpoint | Quyền truy cập | Mô tả |
+|---|---|---|---|
+| `POST` | `/auth/token` | Công khai | Đăng nhập và nhận JWT token |
+| `GET` | `/users` | ADMIN | Lấy danh sách người dùng |
+| `POST` | `/users` | ADMIN | Tạo người dùng mới |
+| `GET` | `/equipment` | Đã đăng nhập | Lấy danh sách thiết bị |
+| `POST` | `/equipment` | MANAGER | Tạo mới thiết bị kèm mã QR |
+| `GET` | `/equipment/{id}` | Đã đăng nhập | Xem chi tiết thiết bị |
+| `GET` | `/public/equipment/{id}` | Công khai | Tra cứu thiết bị qua mã QR không cần đăng nhập |
+| `GET` | `/tickets` | Đã đăng nhập | Xem danh sách phiếu bảo trì |
+| `POST` | `/tickets` | REPORTER/MANAGER | Tạo phiếu yêu cầu bảo trì mới |
+| `PATCH` | `/tickets/{id}/status` | TECHNICIAN/MANAGER | Cập nhật trạng thái phiếu |
+| `GET` | `/notifications` | Đã đăng nhập | Lấy danh sách thông báo |
+| `PATCH` | `/notifications/{id}/read` | Đã đăng nhập | Đánh dấu thông báo đã đọc |
+| `GET` | `/schedules` | MANAGER | Xem lịch bảo trì định kỳ |
 
-Cấu hình các Route Table tương ứng: Public Subnet định tuyến trực tiếp đến Internet Gateway; Private Subnet thiết lập dải định tuyến nội bộ với NAT Gateway được đặt thành None để tránh tiêu tốn chi phí duy trì tài khoản hàng tháng.
+### 3.1.2 Frontend — React Router v7 với TypeScript
 
-#### Bước 2: Triển khai Serverless Backend xử lý nhật ký ESP32 Tracker
+Frontend được phát triển bằng **React Router v7** ở chế độ **Server-Side Rendering (SSR)** tích hợp TypeScript và TailwindCSS.
 
-Khởi tạo một hàm tính toán Serverless có tên là **Process_ESP32_Tracker_Telemetry** chạy trên môi trường Node.js. Hàm này xử lý các logic nghiệp vụ quan trọng: nhận các gói dữ liệu chẩn đoán và tình trạng pin từ các thiết bị ESP32 tracker, thực hiện phân tích lỗi phần cứng và tạo một S3 Presigned URL ngắn hạn (thời gian sống giới hạn trong 5 phút) để thiết bị có quyền tải lên các tệp nhật ký lỗi (log files) cục bộ.
+**Cấu trúc đường dẫn (Routes):**
+```
+/ ──► (Tự động chuyển hướng sang /login)
+/login ──► Trang đăng nhập
+/admin
+  /dashboard ──► Dashboard Quản trị viên
+  /users ──► Quản lý người dùng
+/manager
+  /dashboard ──► Dashboard Quản lý
+  /equipment ──► Danh sách thiết bị
+  /equipment/:id ──► Chi tiết thiết bị + Mã QR
+  /tickets ──► Quản lý tất cả phiếu bảo trì
+  /schedules ──► Lịch bảo trì định kỳ
+  /reports ──► Báo cáo & Thống kê
+/technician
+  /my-tickets ──► Phiếu bảo trì được phân công cho Kỹ thuật viên
+/reporter
+  /my-tickets ──► Phiếu sự cố đã gửi của Người báo cáo
+  /report-issue ──► Biểu mẫu gửi báo cáo sự cố mới
+/public
+  /equipment/:id ──► Trang công khai quét mã QR thiết bị (không cần login)
+```
 
-![Cấu hình mã nguồn Lambda](/images/5-Workshop/5.3-Implementation_Steps/tracker-lambda-source.png?classes=shadow)
+### 3.1.3 Phân quyền người dùng (RBAC)
 
-> [!NOTE]
-> Giao diện cấu hình mã nguồn của hàm Lambda Process_ESP32_Tracker_Telemetry tích hợp với API Gateway trên AWS Console
+Hệ thống hỗ trợ 4 vai trò với phân quyền rõ ràng:
 
-Cấu hình kết nối mạng cho hàm Lambda: Di chuyển đến tab Configuration -> chọn VPC -> Kết nối trực tiếp hàm Lambda với Tracker-VPC.
+| Vai trò | Quyền hạn |
+|---|---|
+| **ADMIN** | Toàn quyền hệ thống: Quản lý người dùng, xem dữ liệu, cấu hình hệ thống |
+| **MANAGER** | Quản lý thiết bị, tạo/phân công/đóng ticket, quản lý lịch bảo trì, xem báo cáo |
+| **TECHNICIAN** | Xem ticket được phân công, cập nhật trạng thái ticket, tải ảnh nghiệm thu |
+| **REPORTER** | Gửi báo cáo sự cố thiết bị mới, theo dõi các ticket do chính mình gửi |
 
-Lựa chọn chính xác 2 Private Subnets để bắt buộc Lambda phải chạy hoàn toàn trong phân vùng mạng nội bộ an toàn. Gán Security Group mặc định của VPC cho hàm Lambda để quản lý các quy tắc Inbound/Outbound.
+## 3.2 Bước 2: Bảo mật chống tấn công Brute-Force Đăng nhập
 
-![Cấu hình Lambda VPC](/images/5-Workshop/5.3-Implementation_Steps/tracker-lambda-vpc.png?classes=shadow)
+Triển khai dịch vụ `LoginAttemptService` sử dụng `ConcurrentHashMap` trên RAM để đếm số lần đăng nhập thất bại:
 
-> [!NOTE]
-> Cấu hình phân bổ hàm Lambda chạy trong môi trường mạng nội bộ Tracker-VPC và các Private Subnet trên AWS Console
+**Logic xử lý (`LoginAttemptService.java`):**
+```java
+private final ConcurrentHashMap<String, AttemptRecord> usernameAttempts = new ConcurrentHashMap<>();
+private final ConcurrentHashMap<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
 
-#### Bước 3: Cấu hình quyền truy cập hệ thống trên AWS IAM
+private static final int MAX_USERNAME_ATTEMPTS = 5;   // Khóa username sau 5 lần sai
+private static final int MAX_IP_ATTEMPTS = 20;         // Khóa IP sau 20 lần sai
+private static final long LOCK_DURATION_MS = 15 * 60 * 1000; // Khóa trong 15 phút
+```
 
-Khi cấu hình Lambda được đặt trong Private Subnet, hệ thống ban đầu sẽ báo lỗi phân quyền vì Lambda chưa có quyền tạo các giao diện mạng ảo nội bộ.
+**Mã lỗi HTTP 429 (`ErrorCode.java`):**
+```java
+TOO_MANY_LOGIN_ATTEMPTS(
+    "Quá nhiều lần đăng nhập thất bại. Tài khoản của bạn đã bị khóa tạm thời. Vui lòng thử lại sau 15 phút.",
+    HttpStatus.TOO_MANY_REQUESTS  // HTTP 429
+)
+```
 
-Để giải quyết vấn đề này, hãy truy cập dịch vụ IAM -> Roles -> Chọn chính xác Role thực thi hiện tại của hàm (Process_ESP32_Tracker_Telemetry-role-...).
+## 3.3 Bước 3: Đóng gói Container với Docker Multi-Stage Builds
 
-Nhấp vào nút Add permissions -> Attach policies -> Tìm kiếm và chọn policy do AWS quản lý: AWSLambdaVPCAccessExecutionRole.
+### 3.3.1 Dockerfile cho Backend
+```dockerfile
+FROM maven:3.9-amazoncorretto-21 AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-Xác nhận gán quyền để cấp cho Lambda đầy đủ các đặc quyền tạo và quản lý Elastic Network Interfaces (ENIs) nhằm truy cập dải mạng VPC.
+FROM amazoncorretto:21-alpine
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
 
-![Gán IAM Role](/images/5-Workshop/5.3-Implementation_Steps/tracker-iam-role.png?classes=shadow)
+### 3.3.2 Dockerfile cho Frontend
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json .
+RUN npm ci
+COPY . .
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN npm run build
 
-> [!NOTE]
-> Giao diện gán policy AWSLambdaVPCAccessExecutionRole cho IAM Role của hàm Lambda hệ thống bảo trì trên AWS Console
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package*.json .
+RUN npm ci --omit=dev
+EXPOSE 3000
+CMD ["node", "node_modules/@react-router/serve/dist/index.js", "build/server/index.js"]
+```
 
-#### Bước 4: Thiết lập Bảo mật Amazon S3 lưu trữ Firmware và Log
-Thiết lập kết nối mạng riêng để tối ưu hóa chi phí và bảo vệ kho lưu trữ dữ liệu thiết bị:
+### 3.3.3 Docker Compose trên máy chủ EC2 (`docker-compose-remote.yml`)
+```yaml
+services:
+  tracker-be:
+    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-be:latest
+    ports:
+      - "8081:8081"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
+      DB_URL: jdbc:postgresql://tracker-maintenance-db.cvow26so4q44.ap-southeast-2.rds.amazonaws.com:5432/postgres
+      DB_USERNAME: postgres
+      DB_PASSWORD: admin1810
+      JWT_SIGNER_KEY: myTrackerMaintenanceSecretKeyForHS512AlgorithmMustBe64CharsLong!
+      APP_BASE_URL: https://trackermaint.dpdns.org
+      CLOUDFLARE_R2_ENDPOINT: https://s3.ap-southeast-2.amazonaws.com
+      CLOUDFLARE_R2_PUBLICURL: https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com
+      CLOUDFLARE_R2_BUCKETNAME: tracker-maintenance-images-123
+      APP_R2_ACCESS_KEY_ID: ${APP_R2_ACCESS_KEY_ID}
+      APP_R2_SECRET_ACCESS_KEY: ${APP_R2_SECRET_ACCESS_KEY}
+      APP_R2_REGION: ap-southeast-2
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-southeast-2
+        awslogs-group: /tracker-maintenance/backend
+        awslogs-create-group: "true"
+        awslogs-stream: be-logs
+    restart: on-failure
 
-Khởi tạo một Amazon S3 Bucket có tên là **tracker-maintenance-storage** ở chế độ hoàn toàn riêng tư (Block Public Access) và bật mặc định Server-Side Encryption (SSE-S3) để lưu trữ tất cả các bản cập nhật firmware (OTA) và báo cáo lỗi phần cứng.
+  tracker-fe:
+    image: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com/tracker-fe:latest
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-southeast-2
+        awslogs-group: /tracker-maintenance/frontend
+        awslogs-create-group: "true"
+        awslogs-stream: fe-logs
+    depends_on:
+      - tracker-be
+    restart: on-failure
+```
 
-![Quản lý tệp S3](/images/5-Workshop/5.3-Implementation_Steps/tracker-s3-files.png?classes=shadow)
+## 3.4 Bước 4: Tự động hóa luồng CI/CD với GitHub Actions
 
-> [!NOTE]
-> Giao diện quản lý các tệp firmware và nhật ký lỗi được lưu trữ bên trong Bucket tracker-maintenance-storage trên AWS Console
+File cấu hình `.github/workflows/deploy.yml`:
 
-Trên trang quản lý VPC Console, tạo một Gateway VPC Endpoint cho S3 (tên dịch vụ: com.amazonaws.us-east-1.s3) và gán trực tiếp vào các Route Table của các Private Subnet trong Tracker-VPC.
+```yaml
+name: Deploy to EC2 (Tracker Maintenance)
 
-Bản ghi định tuyến mới tự động được hệ thống thêm vào sẽ hướng tất cả các yêu cầu từ hàm Lambda nội bộ đến Amazon S3 thông qua mạng xương sống nội bộ của AWS thay vì định tuyến ra ngoài Internet. Cơ chế này giúp cắt giảm 100% chi phí băng thông mạng cho S3 và tăng tốc độ truyền tải các bản vá phần mềm.
+on:
+  push:
+    branches:
+      - main
 
-Cấu hình S3 Bucket Policy nghiêm ngặt để bảo vệ tài nguyên: Từ chối tuyệt đối tất cả các yêu cầu truy cập đọc/ghi từ Internet bên ngoài và chỉ chấp nhận các yêu cầu tương tác hợp lệ đi qua Gateway VPC Endpoint mới được tạo của hệ thống.
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REGISTRY: 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
+  BE_REPO: tracker-be
+  FE_REPO: tracker-fe
 
-![S3 Block Public Access](/images/5-Workshop/5.3-Implementation_Steps/tracker-s3-security.png?classes=shadow)
+jobs:
+  build-and-push:
+    name: Build and Push to AWS ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-> [!NOTE]
-> Trạng thái kích hoạt của tính năng Block Public Access bảo vệ kho lưu trữ tài liệu bảo trì S3 trên AWS Console
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-#### Bước 5: Cấu hình hệ thống cảnh báo bảo trì với Amazon CloudWatch & SNS
-Thiết lập "mắt thần" giám sát tự động để theo dõi trạng thái ngoại tuyến hoặc lỗi cảm biến của các tracker:
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-Hàm Lambda nghiệp vụ tự động đẩy tất cả nhật ký chẩn đoán chi tiết vào dịch vụ Amazon CloudWatch Log Groups trong thời gian thực.
+      - name: Build and Push Backend
+        run: |
+          cd tracker_maintenance_service
+          docker build -t $ECR_REGISTRY/$BE_REPO:latest .
+          docker push $ECR_REGISTRY/$BE_REPO:latest
 
-Thiết lập một Metric Filter tùy chỉnh có tên là **TrackerHardwareErrorFilter** trên Log Group của dự án để quét qua luồng nhật ký và đếm tần suất của các mã lỗi viết hoa như "HARDWARE_FAULT", "SENSOR_TIMEOUT" hoặc "BATTERY_CRITICAL".
+      - name: Build and Push Frontend
+        run: |
+          cd tracker_maintenance_ui
+          docker build \
+            --build-arg VITE_API_BASE_URL=https://trackermaint.dpdns.org \
+            -t $ECR_REGISTRY/$FE_REPO:latest .
+          docker push $ECR_REGISTRY/$FE_REPO:latest
 
-Khởi tạo một CloudWatch Alarm kết nối trực tiếp với chỉ số (metric) của bộ lọc. Cấu hình ngưỡng cảnh báo nhạy bén: Chuyển sang trạng thái báo động khẩn cấp (ALARM) ngay khi số lượng lỗi >= 5 trong khoảng thời gian giám sát 5 phút.
+  deploy:
+    name: Deploy to EC2
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into EC2 and Restart Containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user
+            aws ecr get-login-password --region ap-southeast-2 \
+              | docker login --username AWS \
+              --password-stdin 534120921488.dkr.ecr.ap-southeast-2.amazonaws.com
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -f
+```
 
-Liên kết Alarm với dịch vụ Amazon SNS (Simple Notification Service). Khi trạng thái báo động kích hoạt, SNS sẽ tự động biên soạn thông báo yêu cầu bảo trì hệ thống và gửi email khẩn cấp theo thời gian thực tới hộp thư quản trị của nhà phát triển (dokat0903000@gmail.com).
+## 3.5 Bước 5: Amazon S3 — Lưu trữ hình ảnh trên Cloud
 
-![Quản lý CloudWatch Log Groups](/images/5-Workshop/5.3-Implementation_Steps/tracker-cloudwatch-logs.png?classes=shadow)
+Toàn bộ ảnh thiết bị và ảnh nghiệm thu được tải lên trực tiếp **Amazon S3** từ Spring Boot bằng **AWS SDK cho Java v2**:
 
-> [!NOTE]
-> Giao diện quản lý CloudWatch Log Groups để giám sát nhật ký chẩn đoán phần cứng Tracker trên AWS Console
+1. Người dùng gửi file ảnh qua API `POST /equipment/{id}/images`.
+2. Spring Boot `EquipmentService` gọi `S3Client.putObject()` để lưu vào S3.
+3. S3 trả về URL công khai (`https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo.jpg`).
+4. Đường dẫn URL này được lưu lại vào cơ sở dữ liệu PostgreSQL.
+
+## 3.6 Bước 6: Thông báo thời gian thực qua WebSocket
+
+Backend sử dụng **Spring WebSocket** với **giao thức STOMP** truyền qua **SockJS**.
+Frontend `NotificationContext.tsx` lắng nghe trên kênh `/user/queue/notifications` để tự động cập nhật badge số lượng thông báo chưa đọc và tiêu đề thẻ trình duyệt theo thời gian thực.
+
+## 3.7 Bước 7: Quản lý thiết bị qua Mã QR Code
+
+Mỗi thiết bị khi khởi tạo sẽ tự động có một mã QR trỏ đến liên kết công khai:
+`https://trackermaint.dpdns.org/public/equipment/{equipmentId}`
+
+Kỹ thuật viên tại hiện trường chỉ cần dùng camera smartphone quét mã QR dán trên máy là có thể xem ngay chi tiết thông tin, trạng thái hoạt động và lịch sử bảo trì mà không cần đăng nhập.
+
+## 3.8 Bước 8: Quản lý Log tập trung với CloudWatch
+
+Cấu hình driver `awslogs` trong Docker Compose để tự động đẩy stream log về CloudWatch Log Groups:
+- `/tracker-maintenance/backend`
+- `/tracker-maintenance/frontend`
+
+## 3.9 Bước 9: Sao chép ECR đa vùng (Cross-Region Replication)
+
+Cấu hình quy tắc sao chép ECR từ vùng chính Sydney để tự động đồng bộ Docker image sang vùng `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
+
+## 3.10 Bước 10: Tên miền và SSL với Route 53 và ACM
+
+- **Tên miền:** `trackermaint.dpdns.org`
+- **Route 53 A Record:** Trỏ `trackermaint.dpdns.org` về Elastic IP của EC2 (`3.106.194.112`).
+- **Chứng chỉ ACM SSL:** Khởi tạo tại vùng `us-east-1` sẵn sàng tích hợp CloudFront.

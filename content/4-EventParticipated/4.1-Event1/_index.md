@@ -1,126 +1,79 @@
 ---
-title: "Event 1"
-date: 2024-01-01
+title: "Event 1: AWS Agentic AI Build Week (AABW)"
+date: 2026-07-27
 weight: 1
 chapter: false
 pre: " <b> 4.1. </b> "
 ---
 
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy it verbatim** into your report, including this warning.
-{{% /notice %}}
+# Summary Report: “AWS Agentic AI Build Week (AABW)”
 
-# Summary Report: “GenAI-powered App-DB Modernization workshop”
+### Event Overview
+- **Event Name:** AWS Agentic AI Build Week (AABW)
+- **Date & Time:** July 27, 2026
+- **Location:** 26th Floor, Bitexco Financial Tower, 02 Hai Trieu Street, Sai Gon Ward, Ho Chi Minh City
+- **Role:** Attendee
 
-### Event Objectives
+---
 
-- Share best practices in modern application design
-- Introduce Domain-Driven Design (DDD) and event-driven architecture
-- Provide guidance on selecting the right compute services
-- Present AI tools to support the development lifecycle
+### 1. Event Objectives
 
-### Speakers
+The **AWS Agentic AI Build Week (AABW)** was an intensive 24-hour hackathon designed to challenge participants to build practical, real-world solutions powered by Next-Generation Autonomous AI Agents (Agentic AI). The core goals of the event included:
 
-- **Jignesh Shah** – Director, Open Source Databases
-- **Erica Liu** – Sr. GTM Specialist, AppMod
-- **Fabrianne Effendi** – Assc. Specialist SA, Serverless Amazon Web Services
+- **Rapid Product Development:** Constructing a fully functional Minimum Viable Product (MVP) under strict 24-hour time constraints.
+- **Hands-On Cloud & AI Experience:** Integrating specialized AWS services alongside custom AI architectures.
+- **Real-World System Operations:** Bridging academic theory with enterprise-grade cloud system deployment.
+- **High-Velocity Teamwork:** Mastering rapid ideation, task division, parallel execution, and live product demonstrations under pressure.
 
-### Key Highlights
+---
 
-#### Identifying the drawbacks of legacy application architecture
+### 2. Analysis of Featured Hackathon Projects
 
-- Long product release cycles → Lost revenue/missed opportunities  
-- Inefficient operations → Reduced productivity, higher costs  
-- Non-compliance with security regulations → Security breaches, loss of reputation  
+During the showcase, I had the opportunity to observe and analyze three outstanding projects that demonstrated innovative uses of Agentic AI across diverse industries:
 
-#### Transitioning to modern application architecture – Microservices
+#### 2.1. Team 3KA – S.H.E.P.H.E.R.D (Autonomous Crowd Flow Management)
+- **Problem Statement:** Traditional crowd management at high-density venues relies on manual monitoring, leading to delayed hazard responses and poor scalability.
+- **Proposed Solution:** An intelligent computer-vision AI camera system that tracks human movement, measures crowd density in real time, forecasts bottleneck congestion, and triggers automated emergency alerts.
+- **Tech Stack:** YOLO, ByteTrack, Amazon SageMaker, Amazon Bedrock Agent, Core + Strands Agent Framework, and React Dashboard.
+- **Agentic Architecture:** Features a dual-layer design:
+  1. *Autonomous Monitor Layer:* Continuously streams and processes visual analytics.
+  2. *Operator Copilot Layer:* Enables event managers to query real-time status and receive operational recommendations via natural language.
 
-Migrating to a modular system — each function is an **independent service** communicating via **events**, built on three core pillars:
+#### 2.2. Team Signal Scout – Enterprise Strategic Intelligence System
+- **Problem Statement:** Corporate financial and operational data is fragmented across siloed systems, making early detection of strategic risks difficult.
+- **Proposed Solution:** An automated telemetry pipeline that aggregates corporate performance metrics and uses AI Agents to detect early signals of corporate restructuring or market pivots.
+- **Architecture Highlights:** Emphasized decentralized microservice deployment, end-to-end observability, and automated CI/CD. The team provided a transparent AWS cost model (ranging from a baseline of ~$81/month to ~$359/month under peak traffic) along with architectural recommendations for cost reduction.
 
-- **Queue Management**: Handle asynchronous tasks  
-- **Caching Strategy**: Optimize performance  
-- **Message Handling**: Flexible inter-service communication  
+#### 2.3. Team Plan V – SA Professional (Automated Solutions Architecture Assistant)
+- **Problem Statement:** Solutions Architects (SAs) spend extensive hours manually parsing requirement documents (BRD/PRD), drafting diagrams, and estimating cloud costs for complex proposals.
+- **Proposed Solution:** An interactive AI assistant that ingests business requirements, drafts high-level cloud architectures, generates editable Draw.io / AWS diagrams, and calculates localized pricing for the `ap-southeast-1` region.
+- **Impact:** Replaces manual drafting with conversational iterative refinement, automatically generating production-ready Infrastructure as Code (IaC) scripts within minutes.
 
-#### Domain-Driven Design (DDD)
+---
 
-- **Four-step method**: Identify domain events → arrange timeline → identify actors → define bounded contexts  
-- **Bookstore case study**: Demonstrates real-world DDD application  
-- **Context mapping**: 7 patterns for integrating bounded contexts  
+### 3. Key Technical Takeaways
 
-#### Event-Driven Architecture
+- **Complex System Integration:** Team 3KA demonstrated how to pair real-time edge processing (YOLO) with cloud-based AI inference (SageMaker & Bedrock) while maintaining minimal end-to-end latency.
+- **Cloud Cost Optimization (FinOps):** Signal Scout’s detailed breakdown of Bedrock token usage, compute instance scaling, and WAF rules highlighted that effective software engineering requires balancing technical performance with cloud cost efficiency.
+- **Workflow Automation:** Plan V illustrated how AI can automate technical documentation and IaC template generation, a capability directly applicable to full-stack cloud projects.
 
-- **3 integration patterns**: Publish/Subscribe, Point-to-point, Streaming  
-- **Benefits**: Loose coupling, scalability, resilience  
-- **Sync vs async comparison**: Understanding the trade-offs  
+---
 
-#### Compute Evolution
+### 4. Management & Teamwork Insights
 
-- **Shared Responsibility Model**: EC2 → ECS → Fargate → Lambda  
-- **Serverless benefits**: No server management, auto-scaling, pay-for-value  
-- **Functions vs Containers**: Criteria for appropriate choice  
+Participating in and observing a 24-hour hackathon provided deep insights into managing technical stress and team dynamics:
 
-#### Amazon Q Developer
+- **Navigating Technical Crisis:** Teams encountered unexpected hurdles such as Git merge conflicts, sudden API rate limits, and accidental credential leaks. Achieving a deep state of focus ("flow state") helped teams convert panic into structured troubleshooting.
+- **Four Pillars of Execution:** Successful teams relied on:
+  1. Clear project boundaries.
+  2. Modular boilerplate templates prepared in advance.
+  3. Strict role division.
+  4. Ample time reserved for rehearsing the live product demo.
+- **Execution Mindset:** *"Showing up is half the battle won."* A polished, working core feature set delivers significantly more value than an ambitious but non-functional concept.
 
-- **SDLC automation**: From planning to maintenance  
-- **Code transformation**: Java upgrade, .NET modernization  
-- **AWS Transform agents**: VMware, Mainframe, .NET migration  
+---
 
-### Key Takeaways
+### 5. Practical Application to My Work
 
-#### Design Mindset
-
-- **Business-first approach**: Always start from the business domain, not the technology  
-- **Ubiquitous language**: Importance of a shared vocabulary between business and tech teams  
-- **Bounded contexts**: Identifying and managing complexity in large systems  
-
-#### Technical Architecture
-
-- **Event storming technique**: Practical method for modeling business processes  
-- Use **event-driven communication** instead of synchronous calls  
-- **Integration patterns**: When to use sync, async, pub/sub, streaming  
-- **Compute spectrum**: Criteria for choosing between VM, containers, and serverless  
-
-#### Modernization Strategy
-
-- **Phased approach**: No rushing — follow a clear roadmap  
-- **7Rs framework**: Multiple modernization paths depending on the application  
-- **ROI measurement**: Cost reduction + business agility  
-
-### Applying to Work
-
-- **Apply DDD** to current projects: Event storming sessions with business teams  
-- **Refactor microservices**: Use bounded contexts to define service boundaries  
-- **Implement event-driven patterns**: Replace some sync calls with async messaging  
-- **Adopt serverless**: Pilot AWS Lambda for suitable use cases  
-- **Try Amazon Q Developer**: Integrate into the dev workflow to boost productivity  
-
-### Event Experience
-
-Attending the **“GenAI-powered App-DB Modernization”** workshop was extremely valuable, giving me a comprehensive view of modernizing applications and databases using advanced methods and tools. Key experiences included:
-
-#### Learning from highly skilled speakers
-- Experts from AWS and major tech organizations shared **best practices** in modern application design.  
-- Through real-world case studies, I gained a deeper understanding of applying **DDD** and **Event-Driven Architecture** to large projects.  
-
-#### Hands-on technical exposure
-- Participating in **event storming** sessions helped me visualize how to **model business processes** into domain events.  
-- Learned how to **split microservices** and define **bounded contexts** to manage large-system complexity.  
-- Understood trade-offs between **synchronous and asynchronous communication** and integration patterns like **pub/sub, point-to-point, streaming**.  
-
-#### Leveraging modern tools
-- Explored **Amazon Q Developer**, an AI tool for SDLC support from planning to maintenance.  
-- Learned to **automate code transformation** and pilot serverless with **AWS Lambda** to improve productivity.  
-
-#### Networking and discussions
-- The workshop offered opportunities to exchange ideas with experts, peers, and business teams, enhancing the **ubiquitous language** between business and tech.  
-- Real-world examples reinforced the importance of the **business-first approach** rather than focusing solely on technology.  
-
-#### Lessons learned
-- Applying DDD and event-driven patterns reduces **coupling** while improving **scalability** and **resilience**.  
-- Modernization requires a **phased approach** with **ROI measurement**; rushing the process can be risky.  
-- AI tools like Amazon Q Developer can significantly **boost productivity** when integrated into the current workflow.  
-
-#### Some event photos
-*Add your event photos here*  
-
-> Overall, the event not only provided technical knowledge but also helped me reshape my thinking about application design, system modernization, and cross-team collaboration.
+- **Security & Secret Management:** Observing Team 3KA’s accidental credential commit reinforced the critical importance of strict `.gitignore` configurations, environment variables (`.env`), and immediate API key rotation protocols — practices I actively implemented in the JWT authentication layer for the **Tracker Maintenance** project.
+- **Architecture-First Development:** Moving forward, I will systematically model system architecture diagrams and perform cloud cost projections (inspired by Plan V) prior to writing code for any AWS deployment.

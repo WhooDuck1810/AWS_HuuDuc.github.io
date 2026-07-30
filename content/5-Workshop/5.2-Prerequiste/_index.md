@@ -1,40 +1,111 @@
 ---
 title: "Prerequisite"
-date: 2026-07-26
+date: 2026-07-30
 weight: 2
 chapter: false
 pre: " <b> 5.2. </b> "
 ---
 
-### Prerequisite
+# 2. Prerequisite
 
-#### Accounts and Access (AWS IAM & CLI)
+## 2.1 Knowledge Prerequisites
 
-The system requires an active AWS account with IAM administrator privileges. To comply with the Principle of Least Privilege, the development team does not use the main Root account. Instead, a secondary developer account named **Tracker-Developer** is created to grant permissions and obtain security keys for connecting from the local workstation through the following steps:
+Before beginning this workshop, participants should have a working understanding of:
 
-- **Step 1 (Configuration on AWS Console):** Log in to the AWS Management Console using the administrator account and navigate to the **IAM (Identity and Access Management)** service → **Users** → select the user **Tracker-Developer**. Go to the **Security credentials** tab, locate the **Access keys** section, and select **Create access key**. Choose **Command Line Interface (CLI)** as the use case, agree to the terms, and confirm to generate the key pair: **Access Key ID** and **Secret Access Key**. Download the `.csv` file containing this security key information.
+- **Basic Linux Command Line:** Ability to SSH into a server, navigate directories, and run shell commands.
+- **Docker Fundamentals:** Understanding of what Docker images and containers are, how `docker-compose.yml` works, and basic commands (`docker pull`, `docker ps`, `docker logs`).
+- **REST API Concepts:** Understanding of HTTP methods (GET, POST, PUT, DELETE), HTTP status codes, and JSON request/response format.
+- **Basic AWS Console Navigation:** Ability to log into the AWS Management Console, switch regions, and navigate between services.
+- **Git Basics:** Ability to `git commit`, `git push`, and understand GitHub repository concepts.
+- **Spring Boot Basics (Optional):** Familiarity with Spring MVC controller structure, `@RestController`, `@Service`, and `@Repository` patterns.
+- **ReactJS Basics (Optional):** Familiarity with React components, hooks (`useState`, `useEffect`, `useContext`), and routing.
 
-- **Step 2 (Configuration on Local Workstation):** Open Terminal or PowerShell on your personal computer and run the following command:
+## 2.2 Infrastructure Prerequisites
 
-```bash
-aws configure
-````
+The following AWS resources must be provisioned **before** beginning the implementation steps:
 
-Enter the **Access Key ID** and **Secret Access Key** generated in Step 1. Set the **Default region name** to `ap-southeast-1` (Singapore — the ideal deployment region to optimize network latency for users in Vietnam) and the **Default output format** to `json`. This configuration will be automatically saved in the user directory (`~/.aws/` on Linux/macOS or `%USERPROFILE%\.aws\` on Windows).
+### 2.2.1 AWS Account
+- An active **AWS Account** with root or IAM Administrator access.
+- The account must have access to the following services: EC2, RDS, S3, ECR, CloudWatch, IAM, Route 53, CloudFront, ACM.
 
-> [!NOTE]
-> The **IAM Security credentials** tab, with the **Access keys** section, is used to generate CLI connection keys.
+### 2.2.2 Amazon EC2 Instance
+- **Instance Type:** `t2.micro` (1 vCPU, 1 GB RAM) — eligible for AWS Free Tier.
+- **Region:** `ap-southeast-2` (Sydney, Australia).
+- **AMI:** Amazon Linux 2023.
+- **Storage:** 20 GB gp3 EBS volume.
+- **Key Pair:** A `.pem` key pair saved locally for SSH access (e.g., `tracker-key.pem`).
+- **Security Group (Inbound Rules):**
 
-#### Local Workstation Environment and Source Code
+| Port | Protocol | Source | Purpose |
+|---|---|---|---|
+| 22 | TCP | Your IP (or GitHub Actions IP) | SSH access |
+| 80 | TCP | 0.0.0.0/0 | HTTP web traffic |
+| 443 | TCP | 0.0.0.0/0 | HTTPS web traffic |
+| 3000 | TCP | 0.0.0.0/0 | Frontend React app |
+| 8081 | TCP | 0.0.0.0/0 | Backend Spring Boot API |
 
-Ensure the workstation has successfully installed **Node.js** (version 18 or higher) and **Python** (version 3.10 or higher) for backend development (FastAPI/Node.js) and frontend bundling (React/Vue).
+- **Software pre-installed on EC2:**
+  - Docker Engine (`sudo yum install docker -y && sudo systemctl enable docker && sudo systemctl start docker`)
+  - Docker Compose plugin (`sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose`)
+  - AWS CLI v2 (pre-installed on Amazon Linux 2023)
 
-Install **Git** for source code management. Pay special attention to verifying the `.gitignore` file configuration before committing to avoid accidentally pushing sensitive information such as API keys to the remote repository.
+### 2.2.3 Amazon RDS PostgreSQL Instance
+- **Engine:** PostgreSQL 15.
+- **Instance Class:** `db.t4g.micro` (2 vCPU, 1 GB RAM).
+- **Region:** `ap-southeast-2` (Sydney).
+- **Multi-AZ:** Disabled (Single-AZ for cost optimization).
+- **Public Accessibility:** Disabled (private subnet only, accessible from EC2 within the same VPC).
+- **Database name:** `postgres`
+- **Master username:** `postgres`
+- **Endpoint:** `tracker-maintenance-db.cvow26so4q44.ap-southeast-2.rds.amazonaws.com:5432`
+- **Security Group:** Inbound rule allowing port 5432 (PostgreSQL) from the EC2 Security Group.
 
-Prepare an `.env` file in the local environment containing essential environment variables such as the database connection string (`DB_URL`) and the token encryption secret (`JWT_SECRET`).
+### 2.2.4 Amazon S3 Bucket
+- **Bucket Name:** `tracker-maintenance-images-123`
+- **Region:** `ap-southeast-2` (Sydney).
+- **Public Access Settings:** Block all public access = **Disabled** (to allow public image URL reading).
+- **Bucket Policy:** Allow public `s3:GetObject` on all objects.
+- **CORS Configuration:** Allow `PUT` and `GET` from the application domain.
 
-#### Infrastructure Region Selection
+### 2.2.5 Amazon ECR Repositories
+Two private ECR repositories in `ap-southeast-2`:
+- `tracker-be` — stores the Spring Boot backend Docker image.
+- `tracker-fe` — stores the React frontend Docker image.
 
-Select the AWS network infrastructure region in Singapore (`ap-southeast-1`) as the default deployment region. This ensures the lowest latency, providing a smooth access experience for the Tracker Maintenance system while fully supporting all the core AWS services that make up the architecture.
+### 2.2.6 IAM Setup
+- **IAM User for GitHub Actions CI/CD:**
+  - Programmatic access (Access Key ID + Secret Access Key).
+  - Permissions: `AmazonEC2ContainerRegistryFullAccess` (to push Docker images to ECR).
+  - Store as GitHub Repository Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`.
+- **IAM Role for EC2:**
+  - Attached to the EC2 instance.
+  - Permissions: `AmazonEC2ContainerRegistryReadOnly` (to pull Docker images from ECR), `CloudWatchAgentServerPolicy` (to push logs to CloudWatch).
 
+### 2.2.7 Domain and DNS
+- **Domain:** `trackermaint.dpdns.org` — registered and managed via DuckDNS or a similar free DNS provider.
+- **Route 53 Hosted Zone:** The domain is configured in AWS Route 53 with an `A Record` pointing to the EC2 Elastic IP.
+- **ACM SSL Certificate:** Provisioned for `trackermaint.dpdns.org` in `us-east-1 (N. Virginia)` for CloudFront compatibility.
 
+### 2.2.8 Local Developer Environment
+- **Operating System:** Windows 10/11.
+- **JDK:** Java 21 (Amazon Corretto or Temurin).
+- **Node.js:** v18 or v20 LTS.
+- **Maven Wrapper:** `mvnw.cmd` included in the Spring Boot project.
+- **Docker Desktop:** Installed locally for testing container builds.
+- **Git:** Installed and configured with SSH key to GitHub.
+- **SSH Key:** `C:\Users\Duc\Downloads\key\tracker-key.pem` for EC2 access.
+- **IDE:** IntelliJ IDEA (backend) and Visual Studio Code (frontend).
+
+### 2.2.9 GitHub Repository and Secrets
+
+GitHub Repository: `https://github.com/WhooDuck1810/TrackerMaintenance`
+
+Required GitHub Repository Secrets:
+| Secret Name | Description |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | IAM User Access Key for ECR push |
+| `AWS_SECRET_ACCESS_KEY` | IAM User Secret Key for ECR push |
+| `EC2_HOST` | Public IP of the EC2 instance (`3.106.194.112`) |
+| `EC2_SSH_KEY` | Content of the `.pem` private key file for EC2 SSH |
+| `APP_R2_ACCESS_KEY_ID` | AWS Access Key for S3 image upload |
+| `APP_R2_SECRET_ACCESS_KEY` | AWS Secret Key for S3 image upload |

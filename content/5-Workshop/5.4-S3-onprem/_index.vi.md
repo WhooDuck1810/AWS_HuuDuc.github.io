@@ -1,58 +1,102 @@
 ---
-title : "Kết quả thử nghiệm & Thực nghiệm"
-date : 2024-01-01 
-weight : 4 
-chapter : false
-pre : " <b> 5.4. </b> "
+title: "Kết quả kiểm thử & Thực nghiệm"
+date: 2026-07-30
+weight: 4
+chapter: false
+pre: " <b> 5.4. </b> "
 ---
-### Kết quả Thử nghiệm & Thực nghiệm
 
-> [!TIP]
-> 🎬 **Video Demo:** Xem trực tiếp video demo kiểm thử hệ thống Tracker Maintenance trên YouTube: 
+# 4. Kết quả kiểm thử & Thực nghiệm
 
+## 4.1 Unit Test — LoginAttemptService
 
-Sau khi hoàn tất cấu hình cơ sở hạ tầng mạng cô lập và hệ thống Serverless, quá trình thử nghiệm thực tế từ đầu đến cuối (end-to-end) đã được tiến hành để đánh giá tính ổn định của luồng thu thập nhật ký bảo trì thiết bị ESP32:
+**File kiểm thử:** `tracker_maintenance_service/src/test/java/.../service/LoginAttemptServiceTest.java`
 
-#### Thử nghiệm Luồng Đăng ký & Xác thực Kỹ thuật viên (AWS Cognito)
+Toàn bộ 5 kịch bản Unit Test đều vượt qua với tỷ lệ thành công 100% khi chạy lệnh `.\mvnw.cmd test`:
 
-Thực hiện cấp tài khoản cho Kỹ thuật viên bảo trì trên ứng dụng quản lý nội bộ.
+| Kịch bản Test | Mô tả | Kết quả |
+|---|---|---|
+| `testUsernameNotBlockedInitially()` | Tên người dùng mới chưa có lần đăng nhập sai sẽ không bị khóa | ✅ ĐẠT |
+| `testUsernameBlockedAfterMaxAttempts()` | Sau 5 lần đăng nhập sai liên tiếp, tên người dùng sẽ bị khóa | ✅ ĐẠT |
+| `testIpBlockedAfterMaxAttempts()` | Sau 20 lần đăng nhập sai từ cùng 1 IP, địa chỉ IP sẽ bị khóa | ✅ ĐẠT |
+| `testSuccessfulLoginResetsAttempts()` | Đăng nhập thành công sẽ reset đếm số lần sai về 0 | ✅ ĐẠT |
+| `testUnblockAfterLockoutPeriod()` | Sau khi hết 15 phút khóa tạm thời, tài khoản được tự động mở khóa | ✅ ĐẠT |
 
-![Luồng Đăng ký Cognito](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cognito-auth.png?classes=shadow)
+**Kết xuất kết quả (Output):**
+```
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+```
 
-> [!WARNING]
-> Hình ảnh chức năng tạo tài khoản và phân quyền truy cập cho Kỹ thuật viên bảo trì thiết bị
+## 4.2 Bảo vệ Brute-Force — Kiểm thử thủ công
 
-Hệ thống AWS Cognito ghi nhận chính xác kỹ thuật viên mới và tự động gửi thông tin đăng nhập tạm thời về email. Kỹ thuật viên đăng nhập lần đầu, đổi mật khẩu và trạng thái tài khoản trên hệ thống chuyển sang "Confirmed", cấp quyền truy cập vào bảng điều khiển bảo trì.
+**Kịch bản kiểm thử:** Thử đăng nhập liên tục với mật khẩu sai 6 lần.
 
-![Quản trị Người dùng Cognito](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cognito-users.png?classes=shadow)
+| Lần thử | Username | Password | Mã phản hồi HTTP |
+|---|---|---|---|
+| 1st | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
+| 2nd | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
+| 3rd | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
+| 4th | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
+| 5th | admin | wrongpass | `401 Unauthorized` — Sai thông tin xác thực |
+| 6th | admin | wrongpass | `429 Too Many Requests` — **Tài khoản bị khóa** |
+| 7th (Đúng) | admin | Admin123! | `429 Too Many Requests` — **Vẫn bị khóa** |
 
-> [!WARNING]
-> Giao diện quản lý danh sách Kỹ thuật viên bảo trì và trạng thái xác thực trên AWS Cognito User Pool
+**Kết luận:** Tài khoản bị khóa chính xác sau 5 lần nhập sai liên tiếp, ngay cả khi nhập đúng mật khẩu ở lần thứ 7 cũng không thể vượt qua trong khoảng thời gian 15 phút. ✅
 
-#### Thử nghiệm Luồng Tải Nhật ký Lỗi Thiết bị (Crash Logs) qua S3 Presigned URL
+## 4.3 Luồng CI/CD Pipeline — Kiểm thử triển khai
 
-Mô phỏng một thiết bị ESP32 Tracker gặp sự cố phần cứng. Thiết bị tự động gửi yêu cầu (payload) chứa mã lỗi và MAC Address tới API Gateway để kích hoạt hàm AWS Lambda `Process_ESP32_Tracker_Telemetry`.
+**Thực nghiệm:** Push một thay đổi nhỏ lên nhánh `main` và theo dõi luồng triển khai tự động.
 
-Hàm Lambda nằm trong Private Subnet thực thi mượt mà, xác thực chữ ký của thiết bị và gọi qua S3 Gateway Endpoint nội bộ. Nó yêu cầu Amazon S3 cấp một đường liên kết mã hóa tạm thời (Presigned URL) có hiệu lực 5 phút để thiết bị có thể upload file log cục bộ.
+**Tiến trình chạy trên GitHub Actions:**
+```
+00:00 - Push commit lên main
+00:02 - GitHub Actions Workflow được kích hoạt
+00:15 - Xắc thực quyền AWS Credentials thành công
+00:30 - Bắt đầu Build Docker Backend
+02:30 - File JAR Backend được đóng gói (Maven compile + package)
+03:00 - Push Docker image Backend lên ECR ap-southeast-2
+03:05 - Bắt đầu Build Docker Frontend
+04:00 - Build xong ứng dụng React Frontend
+04:20 - Push Docker image Frontend lên ECR ap-southeast-2
+04:25 - Kết nối SSH thành công vào EC2 (3.106.194.112)
+04:35 - Đăng nhập ECR trên EC2 thành công
+04:40 - Chạy docker-compose pull tải image mới về
+04:55 - Chạy docker-compose up -d khởi động lại container
+05:00 - Xóa các Docker image cũ không dùng (prune)
+05:05 - Workflow thành công THÀNH CÔNG ✅
+```
 
-Sau khi nhận được liên kết, module Wi-Fi của ESP32 thực hiện một HTTP PUT request để đẩy trực tiếp tệp `.txt` chứa nhật ký lỗi vào Amazon S3 Bucket `tracker-maintenance-storage`.
+**Tổng thời gian triển khai:** ~5 phút từ lúc `git push` đến khi hệ thống cập nhật live trên production. ✅
 
-Truy cập S3 Console, tệp log của thiết bị đã được phân loại tự động vào đúng thư mục ngày tháng với dung lượng chính xác, minh chứng cho việc luồng kết nối bảo mật nội bộ VPC đã hoạt động thành công 100%.
+## 4.4 Thông báo thời gian thực — Kiểm thử WebSocket
 
-![Tải log lên S3 Thành công](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-s3-upload.png?classes=shadow)
+**Kịch bản:**
+1. Mở Thẻ trình duyệt 1 (Đăng nhập vai trò MANAGER) và Thẻ 2 (Đăng nhập vai trò TECHNICIAN).
+2. Manager tạo mới một ticket bảo trì và phân công cho Technician.
 
-> [!WARNING]
-> Hình ảnh tệp nhật ký chẩn đoán phần cứng ESP32 được tải lên an toàn hệ thống S3
+**Kết quả thực tế:**
+- Thẻ 2 (Technician) hiển thị thông báo dạng Toast ngay lập tức mà không cần tải lại trang.
+- Tiêu đề Thẻ 2 tự động cập nhật từ `My Tickets | Tracker Maintenance` thành `(1) My Tickets | Tracker Maintenance`.
+- Biểu tượng quả chuông hiển thị badge màu đỏ với số `1`. ✅
 
-#### Thử nghiệm Hệ thống Cảnh báo Lỗi Phần cứng với CloudWatch & SNS
+## 4.5 Tải ảnh lên S3 — Kiểm thử
 
-Cố tình ngắt kết nối cảm biến trên phần cứng ESP32 để thiết bị gửi chuỗi cảnh báo "HARDWARE_FAULT" và "SENSOR_TIMEOUT" liên tục về hệ thống Backend.
+**Thực nghiệm:** Tải lên một ảnh thiết bị dạng JPEG từ trang Chi tiết Thiết bị.
 
-Ngay khi dữ liệu được tiếp nhận, CloudWatch Log Groups lập tức ghi nhận nhật ký (logs). Bộ lọc chỉ số (Metric Filter) `TrackerHardwareErrorFilter` bắt được các từ khóa lỗi nghiêm trọng và đẩy chỉ số vượt ngưỡng cấu hình (>= 5 lỗi trong 5 phút).
+- Sau 1.2 giây, ảnh được tải thành công lên S3 và giao diện hiển thị ảnh trực tiếp từ đường dẫn công khai:
+`https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo-1234567890.jpg` ✅
 
-Hệ thống lập tức chuyển sang trạng thái ALARM. Trong chưa đầy 30 giây, một email thông báo yêu cầu bảo trì khẩn cấp từ Amazon SNS đã được gửi trực tiếp tới hộp thư quản trị, kèm theo ID của thiết bị đang gặp sự cố. Điều này chứng minh luồng giám sát và tự động phát cảnh báo bảo trì hoạt động hoàn toàn chính xác.
+## 4.6 Quét mã QR — Kiểm thử
 
-![CloudWatch Alarm Triggered](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cloudwatch-alarm.png?classes=shadow)
+**Thực nghiệm:** Dùng smartphone quét mã QR dán trên thiết bị.
 
-> [!WARNING]
-> Cảnh báo khẩn cấp được kích hoạt trên CloudWatch gửi email điều phối bảo trì cho thiết bị lỗi
+**Kết quả:** Trình duyệt di động mở liên kết `https://trackermaint.dpdns.org/public/equipment/1` và hiển thị đầy đủ thông tin thiết bị, trạng thái, model, số sê-ri, vị trí và lịch sử bảo trì mà không yêu cầu đăng nhập. ✅
+
+## 4.7 Log tập trung CloudWatch — Kiểm thử
+
+Log Group `/tracker-maintenance/backend` xuất hiện tự động trên CloudWatch Console và hiển thị đầy đủ thông tin SQL, thông báo hệ thống và lịch sử đăng nhập theo thời gian thực. ✅
+
+## 4.8 Sao chép ECR đa vùng — Kiểm thử
+
+Sau khi push Docker image lên ECR Sydney, chỉ trong vòng 60 giây, cả 2 repository `tracker-be` và `tracker-fe` tự động xuất hiện tại ECR `ap-southeast-1` (Singapore) mà không cần thao tác thủ công. ✅

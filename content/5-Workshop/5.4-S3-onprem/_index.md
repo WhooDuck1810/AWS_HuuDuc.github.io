@@ -1,58 +1,113 @@
 ---
-title : "Test Results & Experimentation"
-date : 2024-01-01
-weight : 4
-chapter : false
-pre : " <b> 5.4. </b> "
+title: "Test Results & Experimentation"
+date: 2026-07-30
+weight: 4
+chapter: false
+pre: " <b> 5.4. </b> "
 ---
-### Testing & Experimental Results
 
-> [!TIP]
-> 🎬 **Demo Video:** Watch the live demonstration video of the Tracker Maintenance system testing on YouTube: 
+# 4. Test Results & Experimentation
 
+## 4.1 Unit Tests — LoginAttemptService
 
-After finalizing the isolated network infrastructure and Serverless configuration, practical end-to-end testing was conducted to evaluate the stability of the ESP32 device maintenance log collection flow:
+**Test File:** `tracker_maintenance_service/src/test/java/.../service/LoginAttemptServiceTest.java`
 
-#### Testing the Technician Registration & Authentication Flow (AWS Cognito)
+All 5 unit tests pass with a 100% success rate when executing `.\mvnw.cmd test`:
 
-Provisioned a new account for a Maintenance Technician on the internal management application.
+| Test Case | Description | Result |
+|---|---|---|
+| `testUsernameNotBlockedInitially()` | A fresh username with no attempts should not be blocked | ✅ PASS |
+| `testUsernameBlockedAfterMaxAttempts()` | After 5 failed attempts, the username should be blocked | ✅ PASS |
+| `testIpBlockedAfterMaxAttempts()` | After 20 failed attempts from the same IP, the IP should be blocked | ✅ PASS |
+| `testSuccessfulLoginResetsAttempts()` | A successful login should reset the failed attempt counter | ✅ PASS |
+| `testUnblockAfterLockoutPeriod()` | After the 15-minute lockout window expires, the account should be unblocked | ✅ PASS |
 
-![Cognito Registration Flow](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cognito-auth.png?classes=shadow)
+**Test Output:**
+```
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+```
 
-> [!WARNING]
-> Image illustrating the account creation and authorization function for Maintenance Technicians
+## 4.2 Brute-Force Protection — Manual Testing
 
-The AWS Cognito system correctly registered the new technician and automatically dispatched temporary login credentials via email. The technician logged in for the first time, changed the password, and the account status transitioned to "Confirmed," granting access to the maintenance dashboard.
+**Test Scenario:** Attempt to log in with an incorrect password 6 times in succession.
 
-![Cognito Users Management](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cognito-users.png?classes=shadow)
+| Attempt | Username | Password | HTTP Response |
+|---|---|---|---|
+| 1st | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
+| 2nd | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
+| 3rd | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
+| 4th | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
+| 5th | admin | wrongpass | `401 Unauthorized` — Invalid credentials |
+| 6th | admin | wrongpass | `429 Too Many Requests` — **Account Locked** |
+| 7th (correct) | admin | Admin123! | `429 Too Many Requests` — **Still locked** |
 
-> [!WARNING]
-> Management interface of the Maintenance Technician account list and authentication status on the AWS Cognito User Pool
+**Result:** The account is correctly locked after 5 consecutive failures, and even a correct password cannot bypass the lockout during the 15-minute window. ✅
 
-#### Testing the Device Crash Log Upload Flow via S3 Presigned URL
+## 4.3 CI/CD Pipeline — Deployment Test
 
-Simulated an ESP32 Tracker device encountering a hardware failure. The device automatically dispatched a payload containing the error code and MAC Address to the API Gateway to trigger the `Process_ESP32_Tracker_Telemetry` AWS Lambda function.
+**Test:** Push a trivial code change to the `main` branch and observe the full automated deployment.
 
-The Lambda function, secured within the Private Subnet, executed smoothly, authenticated the device's signature, and invoked the internal S3 Gateway Endpoint. It requested Amazon S3 to issue a temporary encrypted link (Presigned URL) valid for 5 minutes, allowing the device to upload its local log file.
+**GitHub Actions Run Timeline:**
+```
+00:00 - Push commit to main
+00:02 - GitHub Actions workflow triggered
+00:15 - AWS credentials configured
+00:30 - Docker build (Backend) started
+02:30 - Backend JAR built (Maven compile + package)
+03:00 - Backend Docker image pushed to ECR ap-southeast-2
+03:05 - Docker build (Frontend) started
+04:00 - Frontend React build completed
+04:20 - Frontend Docker image pushed to ECR ap-southeast-2
+04:25 - SSH connection established to EC2 (3.106.194.112)
+04:35 - ECR login on EC2 successful
+04:40 - docker-compose pull completed (new images downloaded)
+04:55 - docker-compose up -d completed (containers restarted)
+05:00 - Old images pruned
+05:05 - Workflow SUCCESS ✅
+```
 
-Upon receiving the link, the ESP32's Wi-Fi module executed an HTTP PUT request to push the `.txt` file containing the crash log directly into the Amazon S3 Bucket `tracker-maintenance-storage`.
+**Total deployment time:** ~5 minutes from `git push` to live production update. ✅
 
-Accessing the S3 Console verified that the device's log file was automatically categorized into the correct date folder with the exact file size, proving that the internal VPC secure connection flow operated with 100% success.
+## 4.4 Real-Time Notification — WebSocket Test
 
-![S3 Log Upload Success](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-s3-upload.png?classes=shadow)
+**Test Scenario:**
+1. Open Browser Tab 1 (logged in as MANAGER) and Browser Tab 2 (logged in as TECHNICIAN).
+2. Manager creates a new ticket and assigns it to the Technician.
 
-> [!WARNING]
-> Image of the ESP32 hardware diagnostic log file securely uploaded to the S3 system
+**Actual Result:**
+- Tab 2 (Technician) shows a toast notification in real time without refreshing the page.
+- Tab 2 title updates from `My Tickets | Tracker Maintenance` to `(1) My Tickets | Tracker Maintenance`.
+- The notification bell icon shows a red badge with count `1`. ✅
 
-#### Testing the Hardware Error Alert System with CloudWatch & SNS
+## 4.5 S3 Image Upload — Test
 
-Intentionally disconnected a sensor on the ESP32 hardware to force the device to continuously send "HARDWARE_FAULT" and "SENSOR_TIMEOUT" alert strings to the Backend system.
+**Test:** Upload a PNG equipment photo from the Equipment Detail page.
 
-As soon as the data was received, CloudWatch Log Groups immediately recorded the logs. The `TrackerHardwareErrorFilter` Metric Filter caught the critical error keywords and pushed the metric beyond the configured threshold (>= 5 errors within 5 minutes).
+| Step | Action | Result |
+|---|---|---|
+| 1 | Click "Upload Image" button on equipment `EQ-001` | File picker opens |
+| 2 | Select a 2 MB JPEG photo | File selected |
+| 3 | Click "Upload" | Loading spinner shows |
+| 4 | After 1.2 seconds | Success toast: "Image uploaded successfully" |
+| 5 | Page refreshes equipment image | Image loads from S3 URL |
+| 6 | Open S3 bucket console | File visible in `equipment/eq-001/` prefix |
 
-The system instantly transitioned into the ALARM state. In under 30 seconds, an urgent maintenance request notification email from Amazon SNS was directly dispatched to the administrative inbox, including the ID of the failing device. This proves that the proactive monitoring and automated maintenance alert flow operates exactly as designed.
+**S3 Public URL Format:** `https://tracker-maintenance-images-123.s3.ap-southeast-2.amazonaws.com/equipment/eq-001/photo-1234567890.jpg` ✅
 
-![CloudWatch Alarm Triggered](/images/5-Workshop/5.4-Test_Results_Experimentation/tracker-cloudwatch-alarm.png?classes=shadow)
+## 4.6 QR Code Scan — Test
 
-> [!WARNING]
-> Emergency alert triggered on CloudWatch, dispatching a maintenance coordination email for the faulty device
+**Test:** Scan the QR code displayed on the Equipment Detail page using a smartphone.
+
+**Result:** Smartphone camera recognized the QR code, browser opened `https://trackermaint.dpdns.org/public/equipment/1`, and displayed full equipment information including status, model, serial number, location, and maintenance history — all without requiring login. ✅
+
+## 4.7 CloudWatch Logs — Test
+
+- CloudWatch Log Group `/tracker-maintenance/backend` appeared automatically within 30 seconds of the first container startup.
+- All Spring Boot startup logs, SQL queries, and HTTP request logs were visible in real time in the CloudWatch Logs console. ✅
+
+## 4.8 ECR Cross-Region Replication — Test
+
+**Test:** After configuring ECR replication rules, push a new Docker image to ECR Sydney.
+
+**Result:** Within 60 seconds of the push completing, both `tracker-be` and `tracker-fe` repositories (with the `:latest` tag) appeared automatically in ECR `ap-southeast-1` (Singapore) without any manual intervention. ✅
