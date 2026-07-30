@@ -73,3 +73,4 @@ Trải nghiệm quan sát một cuộc thi 24h mang lại những bài học sâ
 
 - **Nâng cao Bảo mật Dự án Tracker Maintenance:** Sự cố lộ file `.env` của đội thi là một lời nhắc nhở đắt giá, giúp em chú trọng hơn vào cấu hình `.gitignore` và quy trình thu hồi API key ngay lập tức — điều em đã áp dụng trực tiếp khi xây dựng luồng xác thực JWT cho dự án Tracker Maintenance.
 - **Tư duy Kiến trúc Trước Lập trình:** Em áp dụng thói quen vẽ sơ đồ kiến trúc và tính toán chi phí Cloud (tương tự ứng dụng SA của Plan V) trước khi bắt tay vào viết code cho bất kỳ dự án AWS nào.
+

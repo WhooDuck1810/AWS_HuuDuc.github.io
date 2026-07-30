@@ -25,3 +25,4 @@ pre: " <b> 1. </b> "
 **Tuần 8:** [Cấp phát tài nguyên dự án & Thiết lập luồng triển khai liên tục](1.8-week8/)
 
 **Tuần 9:** [Kiểm thử toàn diện, Xử lý sự cố & Báo cáo tổng kết](1.9-week9/)
+

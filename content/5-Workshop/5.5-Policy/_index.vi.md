@@ -15,39 +15,39 @@ Khi hoàn thành bài lab hoặc khi không còn nhu cầu sử dụng hệ th�
 ### Bước 5.5.1: Tạm dừng máy chủ EC2 (Stop Instance)
 
 Nếu muốn giữ lại cấu hình để sử dụng cho lần sau:
-1. Truy cập **EC2 Console** $\rightarrow$ **Instances**.
-2. Chọn máy chủ `tracker-ec2-server` $\rightarrow$ Chọn **Instance State** $\rightarrow$ **Stop instance**.
+1. Truy cập **EC2 Console** => **Instances**.
+2. Chọn máy chủ `tracker-ec2-server` => Chọn **Instance State** => **Stop instance**.
 3. Máy chủ EC2 khi ở trạng thái Stop sẽ **không phát sinh chi phí compute**, chỉ tính phí lưu trữ ổ cứng EBS (~$0.08/GB/tháng).
 
 ---
 
 ### Bước 5.5.2: Tạm dừng cơ sở dữ liệu RDS
 
-1. Truy cập **RDS Console** $\rightarrow$ **Databases**.
-2. Chọn database `tracker-maintenance-db` $\rightarrow$ Chọn **Actions** $\rightarrow$ **Stop temporarily**.
+1. Truy cập **RDS Console** => **Databases**.
+2. Chọn database `tracker-maintenance-db` => Chọn **Actions** => **Stop temporarily**.
 3. RDS cho phép tạm dừng tối đa 7 ngày. Trong thời gian tạm dừng, bạn chỉ trả phí lưu trữ dữ liệu.
 
 ---
 
 ### Bước 5.5.3: Xóa tài nguyên trên S3 (Tùy chọn)
 
-1. Truy cập **S3 Console** $\rightarrow$ `tracker-maintenance-images-123`.
-2. Chọn toàn bộ file ảnh $\rightarrow$ Chọn **Delete**.
+1. Truy cập **S3 Console** => `tracker-maintenance-images-123`.
+2. Chọn toàn bộ file ảnh => Chọn **Delete**.
 3. Bucket rỗng sẽ không phát sinh chi phí lưu trữ.
 
 ---
 
 ### Bước 5.5.4: Xóa Docker Image trên ECR (Tùy chọn)
 
-1. Truy cập **ECR Console** $\rightarrow$ **Private Repositories**.
-2. Chọn `tracker-be` và `tracker-fe` $\rightarrow$ Xóa các tag image `:latest`.
+1. Truy cập **ECR Console** => **Private Repositories**.
+2. Chọn `tracker-be` và `tracker-fe` => Xóa các tag image `:latest`.
 
 ---
 
 ### Bước 5.5.5: Xóa Log Groups trên CloudWatch (Tùy chọn)
 
-1. Truy cập **CloudWatch Console** $\rightarrow$ **Log Groups**.
-2. Chọn `/tracker-maintenance/backend` và `/tracker-maintenance/frontend` $\rightarrow$ **Actions** $\rightarrow$ **Delete log group**.
+1. Truy cập **CloudWatch Console** => **Log Groups**.
+2. Chọn `/tracker-maintenance/backend` và `/tracker-maintenance/frontend` => **Actions** => **Delete log group**.
 
 ---
 

@@ -72,3 +72,4 @@ The combined architecture of EC2 and AWS managed services helps optimize costs:
 
 ### 9. Expected Results
 Successfully deploy a secure, stable, and performance-optimized Tracker Maintenance system. The project serves as a testament to the seamless integration between traditional Multi-tier Web architecture (EC2, RDS) and modern Cloud features (S3 Pre-signed URL, Event-Driven Lambda), resulting in a powerful maintenance management tool that is fully autonomous in terms of authentication.
+

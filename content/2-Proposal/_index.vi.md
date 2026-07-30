@@ -72,3 +72,4 @@ Kiến trúc kết hợp giữa EC2 và các dịch vụ quản lý của AWS gi
 
 ### 9. Kết quả kỳ vọng
 Triển khai thành công hệ thống Tracker Maintenance bảo mật, hoạt động ổn định và tối ưu hiệu năng. Dự án là minh chứng cho khả năng kết hợp nhuần nhuyễn giữa kiến trúc Web đa lớp truyền thống (EC2, RDS) và các tính năng Cloud hiện đại (S3 Pre-signed URL, Event-Driven Lambda), mang lại một công cụ quản lý bảo trì mạnh mẽ và tự chủ hoàn toàn về mặt xác thực.
+

@@ -15,3 +15,4 @@ Below is a summary of the event I attended:
 &emsp;**Date:** 2026-07-27  
 &emsp;**Location:** 26th Floor, Bitexco Financial Tower, 02 Hai Trieu Street, Sai Gon Ward, Ho Chi Minh City  
 &emsp;**Role:** Attendee  
+

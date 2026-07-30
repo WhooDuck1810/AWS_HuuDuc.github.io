@@ -14,9 +14,9 @@ Thực hiện theo các bước hướng dẫn dưới đây để khởi tạo 
 
 ### Bước 5.3.1: Khởi tạo Custom VPC & Phân chia Subnet
 
-1. Truy cập **Amazon VPC Console** $\rightarrow$ Chọn **Create VPC**.
-2. Chọn **VPC only** $\rightarrow$ Đặt tên Name tag: `Tracker-VPC` $\rightarrow$ IPv4 CIDR block: `10.1.0.0/16`.
-3. Trên danh mục bên trái, chọn **Subnets** $\rightarrow$ Chọn **Create subnet**:
+1. Truy cập **Amazon VPC Console** => Chọn **Create VPC**.
+2. Chọn **VPC only** => Đặt tên Name tag: `Tracker-VPC` => IPv4 CIDR block: `10.1.0.0/16`.
+3. Trên danh mục bên trái, chọn **Subnets** => Chọn **Create subnet**:
    - **Public Subnet:** Tên `tracker-public-subnet-1`, CIDR `10.1.1.0/24`, Vùng Availability Zone `ap-southeast-2a`.
    - **Private Subnet:** Tên `tracker-private-subnet-1`, CIDR `10.1.2.0/24`, Vùng Availability Zone `ap-southeast-2b`.
 
@@ -29,9 +29,9 @@ Thực hiện theo các bước hướng dẫn dưới đây để khởi tạo 
 
 ### Bước 5.3.2: Cấu hình Internet Gateway & Bảng tuyến đường (Route Tables)
 
-1. Trên VPC Console, chọn **Internet Gateways** $\rightarrow$ เลือก **Create internet gateway** $\rightarrow$ Đặt tên: `tracker-igw`.
-2. Chọn `tracker-igw` $\rightarrow$ Nhấn **Actions** $\rightarrow$ Chọn **Attach to VPC** $\rightarrow$ Chọn `Tracker-VPC`.
-3. Chọn **Route Tables** $\rightarrow$ Chọn Public Route Table $\rightarrow$ Nhấn **Edit routes** $\rightarrow$ Thêm tuyến đường `0.0.0.0/0` trỏ tới `tracker-igw`.
+1. Trên VPC Console, chọn **Internet Gateways** => เลือก **Create internet gateway** => Đặt tên: `tracker-igw`.
+2. Chọn `tracker-igw` => Nhấn **Actions** => Chọn **Attach to VPC** => Chọn `Tracker-VPC`.
+3. Chọn **Route Tables** => Chọn Public Route Table => Nhấn **Edit routes** => Thêm tuyến đường `0.0.0.0/0` trỏ tới `tracker-igw`.
 
 > [!NOTE]
 > 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Internet Gateway đã Attach vào VPC và Bảng tuyến đường Route Table công khai đính kèm vào bên dưới.
@@ -46,14 +46,14 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 1. **EC2 Security Group (`tracker-ec2-sg`):**
    - **Inbound Rules:**
-     - SSH (22) $\rightarrow$ IP cá nhân
-     - HTTP (80) $\rightarrow$ `0.0.0.0/0`
-     - HTTPS (443) $\rightarrow$ `0.0.0.0/0`
-     - Custom TCP (3000) $\rightarrow$ `0.0.0.0/0` (Frontend React)
-     - Custom TCP (8081) $\rightarrow$ `0.0.0.0/0` (Backend Spring Boot API)
+     - SSH (22) => IP cá nhân
+     - HTTP (80) => `0.0.0.0/0`
+     - HTTPS (443) => `0.0.0.0/0`
+     - Custom TCP (3000) => `0.0.0.0/0` (Frontend React)
+     - Custom TCP (8081) => `0.0.0.0/0` (Backend Spring Boot API)
 2. **RDS Security Group (`tracker-rds-sg`):**
    - **Inbound Rules:**
-     - PostgreSQL (5432) $\rightarrow$ Nguồn: ID của `tracker-ec2-sg`.
+     - PostgreSQL (5432) => Nguồn: ID của `tracker-ec2-sg`.
 
 > [!NOTE]
 > 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình Inbound Rules của `tracker-ec2-sg` và `tracker-rds-sg` đính kèm vào bên dưới.
@@ -64,9 +64,9 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.4: Triển khai Cơ sở dữ liệu Amazon RDS PostgreSQL
 
-1. Mở **Amazon RDS Console** $\rightarrow$ Nhấn **Create database**.
-2. Chọn **Standard create** $\rightarrow$ Engine: **PostgreSQL** (Phiên bản 15.x).
-3. Mẫu: **Free Tier** $\rightarrow$ Cấu hình Instance: `db.t4g.micro`.
+1. Mở **Amazon RDS Console** => Nhấn **Create database**.
+2. Chọn **Standard create** => Engine: **PostgreSQL** (Phiên bản 15.x).
+3. Mẫu: **Free Tier** => Cấu hình Instance: `db.t4g.micro`.
 4. Đặt tên DB instance: `tracker-maintenance-db`, Master username: `postgres`.
 5. Kết nối: Chọn VPC `Tracker-VPC`, chọn Subnet Group trong Private Subnet, Public access: **No**.
 6. Security group: Chọn `tracker-rds-sg`.
@@ -80,10 +80,10 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.5: Cấu hình Amazon S3 Bucket lưu trữ Ảnh
 
-1. Mở **Amazon S3 Console** $\rightarrow$ Nhấn **Create bucket**.
+1. Mở **Amazon S3 Console** => Nhấn **Create bucket**.
 2. Đặt tên Bucket: `tracker-maintenance-images-123`, Vùng: `ap-southeast-2` (Sydney).
 3. Cấu hình **Block Public Access:** Bỏ tích *Block all public access* (Disable).
-4. Lưu tạo bucket, sau đó mở tab **Permissions** $\rightarrow$ Thêm **Bucket Policy**:
+4. Lưu tạo bucket, sau đó mở tab **Permissions** => Thêm **Bucket Policy**:
    ```json
    {
      "Version": "2012-10-17",
@@ -109,8 +109,8 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.6: Cấu hình Amazon ECR & Sao chép đa vùng
 
-1. Mở **Amazon ECR Console** $\rightarrow$ Tạo 2 repository riêng tư: `tracker-be` và `tracker-fe`.
-2. Mở **Private registry** $\rightarrow$ **Replication configuration** $\rightarrow$ Chọn **Add rule**.
+1. Mở **Amazon ECR Console** => Tạo 2 repository riêng tư: `tracker-be` và `tracker-fe`.
+2. Mở **Private registry** => **Replication configuration** => Chọn **Add rule**.
 3. Vùng đích: Thêm `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
 
 > [!NOTE]
@@ -122,10 +122,10 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.7: Khởi tạo Máy chủ Amazon EC2 & Gán Elastic IP
 
-1. Mở **Amazon EC2 Console** $\rightarrow$ Chọn **Launch instance**.
+1. Mở **Amazon EC2 Console** => Chọn **Launch instance**.
 2. Đặt tên: `tracker-ec2-server`, AMI: **Amazon Linux 2023**, Loại: `t2.micro`.
 3. Mạng: VPC `Tracker-VPC`, Subnet `tracker-public-subnet-1`, Security group `tracker-ec2-sg`.
-4. Nâng cao: IAM instance profile $\rightarrow$ Chọn `tracker-ec2-role`.
+4. Nâng cao: IAM instance profile => Chọn `tracker-ec2-role`.
 5. Tạo 01 **Elastic IP** và Associate trực tiếp vào máy chủ EC2 (`3.106.194.112`).
 6. SSH vào EC2 và cài đặt Docker & Docker Compose:
    ```bash
@@ -143,7 +143,7 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.8: Cấu hình GitHub Secrets & CI/CD Pipeline
 
-1. Trong GitHub Repository $\rightarrow$ Vào **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+1. Trong GitHub Repository => Vào **Settings** => **Secrets and variables** => **Actions**.
 2. Thêm các Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `EC2_HOST`, `EC2_SSH_KEY`.
 3. Push file `.github/workflows/deploy.yml` lên nhánh `main` để kích hoạt luồng tự động build Docker, push ECR và deploy EC2.
 
@@ -156,7 +156,7 @@ Tạo 02 Security Groups trong `Tracker-VPC` để phân vùng bảo mật:
 
 ### Bước 5.3.9: Cấu hình Route 53 DNS & Chứng chỉ ACM SSL
 
-1. Mở **Route 53 Console** $\rightarrow$ Tạo Hosted Zone cho `trackermaint.dpdns.org`.
+1. Mở **Route 53 Console** => Tạo Hosted Zone cho `trackermaint.dpdns.org`.
 2. Tạo **A Record** trỏ tên miền `trackermaint.dpdns.org` về Elastic IP của EC2 (`3.106.194.112`).
 3. Khởi tạo chứng chỉ **ACM Certificate** tại vùng `us-east-1` (N. Virginia) cho `trackermaint.dpdns.org` để chuẩn bị cho CloudFront.
 

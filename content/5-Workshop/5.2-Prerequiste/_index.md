@@ -24,11 +24,11 @@ Before beginning the deployment of the Tracker Maintenance System on AWS, prepar
 
 To enable automated Docker image builds and deployment via GitHub Actions without hardcoding root account credentials:
 
-1. Navigate to the **AWS IAM Console** $\rightarrow$ **Users** $\rightarrow$ Click **Create user**.
+1. Navigate to the **AWS IAM Console** => **Users** => Click **Create user**.
 2. Set the username to `github-actions-deployer`.
 3. Under **Permissions options**, choose **Attach policies directly**.
 4. Search for and select `AmazonEC2ContainerRegistryFullAccess`.
-5. Confirm creation, then navigate to **Security credentials** $\rightarrow$ **Create access key** $\rightarrow$ Choose **Command Line Interface (CLI)**.
+5. Confirm creation, then navigate to **Security credentials** => **Create access key** => Choose **Command Line Interface (CLI)**.
 6. Copy and save the generated **Access Key ID** and **Secret Access Key** securely.
 
 > [!NOTE]
@@ -42,7 +42,7 @@ To enable automated Docker image builds and deployment via GitHub Actions withou
 
 To grant the EC2 instance permission to pull Docker images from Amazon ECR and push logs to CloudWatch without storing static credentials on the server:
 
-1. Navigate to **IAM Console** $\rightarrow$ **Roles** $\rightarrow$ Click **Create role**.
+1. Navigate to **IAM Console** => **Roles** => Click **Create role**.
 2. Select **AWS Service** as the trusted entity type, and choose **EC2** as the use case.
 3. Attach the following two AWS managed policies:
    - `AmazonEC2ContainerRegistryReadOnly`
@@ -61,3 +61,4 @@ To grant the EC2 instance permission to pull Docker images from Amazon ECR and p
 - **Principle of Least Privilege (PoLP):** Grants only the exact permissions needed for specific automated pipelines or compute instances.
 - **Root Credentials Security:** Prevents accidental leakage of root credentials in code repositories or CI/CD settings.
 - **Auditability & Compliance:** AWS CloudTrail logs every API action with the exact IAM User/Role identity.
+

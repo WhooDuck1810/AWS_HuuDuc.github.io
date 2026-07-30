@@ -24,11 +24,11 @@ Trước khi bắt đầu triển khai dự án **Tracker Maintenance System** t
 
 Để tự động hóa quá trình build Docker image và deploy từ GitHub mà không cần nạp tài khoản Root:
 
-1. Truy cập **AWS IAM Console** $\rightarrow$ **Users** $\rightarrow$ Chọn **Create user**.
+1. Truy cập **AWS IAM Console** => **Users** => Chọn **Create user**.
 2. Nhập tên user: `github-actions-deployer`.
 3. Tại phần **Permissions options**, chọn **Attach policies directly**.
 4. Tìm và tích chọn chính sách: `AmazonEC2ContainerRegistryFullAccess`.
-5. Xác nhận tạo user, sau đó vào mục **Security credentials** $\rightarrow$ **Create access key** $\rightarrow$ Chọn **Command Line Interface (CLI)**.
+5. Xác nhận tạo user, sau đó vào mục **Security credentials** => **Create access key** => Chọn **Command Line Interface (CLI)**.
 6. Lưu lại cặp khóa **Access Key ID** và **Secret Access Key** để nạp vào GitHub Secrets.
 
 > [!NOTE]
@@ -42,7 +42,7 @@ Trước khi bắt đầu triển khai dự án **Tracker Maintenance System** t
 
 Cấp quyền cho máy chủ EC2 kéo Docker Image từ ECR và đẩy log về CloudWatch mà không cần lưu khóa truy cập cố định trên máy chủ:
 
-1. Truy cập **IAM Console** $\rightarrow$ **Roles** $\rightarrow$ Chọn **Create role**.
+1. Truy cập **IAM Console** => **Roles** => Chọn **Create role**.
 2. Chọn Trusted entity type: **AWS Service**, trường hợp sử dụng: **EC2**.
 3. Gắn 02 chính sách quyền chuẩn của AWS:
    - `AmazonEC2ContainerRegistryReadOnly`
@@ -61,3 +61,4 @@ Cấp quyền cho máy chủ EC2 kéo Docker Image từ ECR và đẩy log về 
 - **Nguyên tắc Quyền Tối thiểu (Principle of Least Privilege):** Chỉ cấp đúng quyền cần thiết cho tiến trình tự động hóa.
 - **Bảo mật Khóa Root:** Rò rỉ Key của Root có thể làm mất kiểm soát toàn bộ tài khoản và phát sinh chi phí ngoài ý muốn.
 - **Khả năng Truy vết (Auditability):** Mọi hành động được AWS CloudTrail ghi nhận rõ danh tính IAM User/Role thực hiện.
+

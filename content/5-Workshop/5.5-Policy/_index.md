@@ -15,16 +15,16 @@ When the workshop is complete or resources are no longer needed, follow these st
 ### Step 5.5.1: Stop (Not Terminate) EC2 Instance
 
 If you want to preserve your setup for later use:
-1. Navigate to **EC2 Console** $\rightarrow$ **Instances**.
-2. Select `tracker-ec2-server` $\rightarrow$ Click **Instance State** $\rightarrow$ **Stop instance**.
+1. Navigate to **EC2 Console** => **Instances**.
+2. Select `tracker-ec2-server` => Click **Instance State** => **Stop instance**.
 3. A stopped EC2 instance incurs **no compute charges**, only minimal EBS storage costs (~$0.08/GB/month).
 
 ---
 
 ### Step 5.5.2: Stop RDS Database Instance
 
-1. Navigate to **RDS Console** $\rightarrow$ **Databases**.
-2. Select `tracker-maintenance-db` $\rightarrow$ Click **Actions** $\rightarrow$ **Stop temporarily**.
+1. Navigate to **RDS Console** => **Databases**.
+2. Select `tracker-maintenance-db` => Click **Actions** => **Stop temporarily**.
 3. RDS can be stopped for up to 7 days. During the stopped period, you pay only for database storage.
 
 ---
@@ -32,24 +32,24 @@ If you want to preserve your setup for later use:
 ### Step 5.5.3: Delete S3 Objects (Optional)
 
 To avoid storage charges for uploaded images:
-1. Navigate to **S3 Console** $\rightarrow$ `tracker-maintenance-images-123`.
-2. Select all objects $\rightarrow$ Click **Delete**.
+1. Navigate to **S3 Console** => `tracker-maintenance-images-123`.
+2. Select all objects => Click **Delete**.
 3. The empty bucket itself costs nothing.
 
 ---
 
 ### Step 5.5.4: Delete ECR Images (Optional)
 
-1. Navigate to **ECR Console** $\rightarrow$ **Private Repositories**.
-2. Select `tracker-be` $\rightarrow$ Delete `:latest` tag.
+1. Navigate to **ECR Console** => **Private Repositories**.
+2. Select `tracker-be` => Delete `:latest` tag.
 3. Repeat for `tracker-fe`.
 
 ---
 
 ### Step 5.5.5: Delete CloudWatch Log Groups (Optional)
 
-1. Navigate to **CloudWatch Console** $\rightarrow$ **Log Groups**.
-2. Select `/tracker-maintenance/backend` and `/tracker-maintenance/frontend` $\rightarrow$ **Actions** $\rightarrow$ **Delete log group**.
+1. Navigate to **CloudWatch Console** => **Log Groups**.
+2. Select `/tracker-maintenance/backend` and `/tracker-maintenance/frontend` => **Actions** => **Delete log group**.
 
 ---
 

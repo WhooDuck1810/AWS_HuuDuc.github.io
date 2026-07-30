@@ -77,3 +77,4 @@ Participating in and observing a 24-hour hackathon provided deep insights into m
 
 - **Security & Secret Management:** Observing Team 3KA’s accidental credential commit reinforced the critical importance of strict `.gitignore` configurations, environment variables (`.env`), and immediate API key rotation protocols — practices I actively implemented in the JWT authentication layer for the **Tracker Maintenance** project.
 - **Architecture-First Development:** Moving forward, I will systematically model system architecture diagrams and perform cloud cost projections (inspired by Plan V) prior to writing code for any AWS deployment.
+

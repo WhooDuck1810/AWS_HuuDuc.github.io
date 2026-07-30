@@ -15,3 +15,4 @@ Dưới đây là tóm tắt sự kiện em đã tham dự:
 &emsp;**Thời gian:** 27/07/2026  
 &emsp;**Địa điểm:** Tầng 26, Tòa nhà Bitexco Financial Tower, Số 02 Hải Triều, Phường Sài Gòn, TP. Hồ Chí Minh  
 &emsp;**Vai trò:** Người tham dự  
+

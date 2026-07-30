@@ -81,3 +81,4 @@ Mô hình AI Gateway cân bằng tốt giữa developer experience và enterpris
   
 
 <img src="/AWS_HuuDuc/images/Blogs/blog1.png" alt="Blog 1" width="1000" />
+

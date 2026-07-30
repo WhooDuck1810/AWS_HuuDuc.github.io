@@ -14,9 +14,9 @@ Follow these step-by-step instructions to build the infrastructure, deploy conta
 
 ### Step 5.3.1: Create Custom VPC & Isolated Subnets
 
-1. Open the **Amazon VPC Console** $\rightarrow$ Click **Create VPC**.
-2. Select **VPC only** $\rightarrow$ Set Name tag to `Tracker-VPC` $\rightarrow$ Set IPv4 CIDR block to `10.1.0.0/16`.
-3. In the navigation pane, choose **Subnets** $\rightarrow$ Click **Create subnet**:
+1. Open the **Amazon VPC Console** => Click **Create VPC**.
+2. Select **VPC only** => Set Name tag to `Tracker-VPC` => Set IPv4 CIDR block to `10.1.0.0/16`.
+3. In the navigation pane, choose **Subnets** => Click **Create subnet**:
    - **Public Subnet:** Name `tracker-public-subnet-1`, CIDR `10.1.1.0/24`, Availability Zone `ap-southeast-2a`.
    - **Private Subnet:** Name `tracker-private-subnet-1`, CIDR `10.1.2.0/24`, Availability Zone `ap-southeast-2b`.
 
@@ -29,9 +29,9 @@ Follow these step-by-step instructions to build the infrastructure, deploy conta
 
 ### Step 5.3.2: Configure Internet Gateway & Route Tables
 
-1. In the VPC Console, choose **Internet Gateways** $\rightarrow$ Click **Create internet gateway** $\rightarrow$ Name: `tracker-igw`.
-2. Select `tracker-igw` $\rightarrow$ Click **Actions** $\rightarrow$ Choose **Attach to VPC** $\rightarrow$ Select `Tracker-VPC`.
-3. Choose **Route Tables** $\rightarrow$ Select the Public Route Table $\rightarrow$ Click **Edit routes** $\rightarrow$ Add route: `0.0.0.0/0` targeted to `tracker-igw`.
+1. In the VPC Console, choose **Internet Gateways** => Click **Create internet gateway** => Name: `tracker-igw`.
+2. Select `tracker-igw` => Click **Actions** => Choose **Attach to VPC** => Select `Tracker-VPC`.
+3. Choose **Route Tables** => Select the Public Route Table => Click **Edit routes** => Add route: `0.0.0.0/0` targeted to `tracker-igw`.
 
 > [!NOTE]
 > 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Internet Gateway attachment and Route Table configuration here.
@@ -46,14 +46,14 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 1. **EC2 Security Group (`tracker-ec2-sg`):**
    - **Inbound Rules:**
-     - SSH (22) $\rightarrow$ Your IP
-     - HTTP (80) $\rightarrow$ `0.0.0.0/0`
-     - HTTPS (443) $\rightarrow$ `0.0.0.0/0`
-     - Custom TCP (3000) $\rightarrow$ `0.0.0.0/0` (Frontend React)
-     - Custom TCP (8081) $\rightarrow$ `0.0.0.0/0` (Backend Spring Boot API)
+     - SSH (22) => Your IP
+     - HTTP (80) => `0.0.0.0/0`
+     - HTTPS (443) => `0.0.0.0/0`
+     - Custom TCP (3000) => `0.0.0.0/0` (Frontend React)
+     - Custom TCP (8081) => `0.0.0.0/0` (Backend Spring Boot API)
 2. **RDS Security Group (`tracker-rds-sg`):**
    - **Inbound Rules:**
-     - PostgreSQL (5432) $\rightarrow$ Source: `tracker-ec2-sg` (Security Group ID).
+     - PostgreSQL (5432) => Source: `tracker-ec2-sg` (Security Group ID).
 
 > [!NOTE]
 > 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Inbound Rules for `tracker-ec2-sg` and `tracker-rds-sg` here.
@@ -64,9 +64,9 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.4: Provision Amazon RDS PostgreSQL Database
 
-1. Open the **Amazon RDS Console** $\rightarrow$ Click **Create database**.
-2. Choose **Standard create** $\rightarrow$ Engine: **PostgreSQL** (Version 15.x).
-3. Template: **Free Tier** $\rightarrow$ Instance class: `db.t4g.micro`.
+1. Open the **Amazon RDS Console** => Click **Create database**.
+2. Choose **Standard create** => Engine: **PostgreSQL** (Version 15.x).
+3. Template: **Free Tier** => Instance class: `db.t4g.micro`.
 4. Settings: DB instance identifier `tracker-maintenance-db`, Master username `postgres`.
 5. Connectivity: Network `Tracker-VPC`, Subnet group in Private Subnet, Public access: **No**.
 6. Security group: Choose `tracker-rds-sg`.
@@ -80,10 +80,10 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.5: Configure Amazon S3 Bucket for Media Storage
 
-1. Open the **Amazon S3 Console** $\rightarrow$ Click **Create bucket**.
+1. Open the **Amazon S3 Console** => Click **Create bucket**.
 2. Bucket name: `tracker-maintenance-images-123`, Region: `ap-southeast-2` (Sydney).
-3. Object Ownership: ACLs disabled $\rightarrow$ **Block Public Access settings:** Uncheck *Block all public access* (Disable).
-4. Save creation, then open **Permissions** tab $\rightarrow$ Add **Bucket Policy**:
+3. Object Ownership: ACLs disabled => **Block Public Access settings:** Uncheck *Block all public access* (Disable).
+4. Save creation, then open **Permissions** tab => Add **Bucket Policy**:
    ```json
    {
      "Version": "2012-10-17",
@@ -109,8 +109,8 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.6: Configure Amazon ECR & Cross-Region Replication
 
-1. Open the **Amazon ECR Console** $\rightarrow$ Create 2 private repositories: `tracker-be` and `tracker-fe`.
-2. Navigate to **Private registry** $\rightarrow$ **Replication configuration** $\rightarrow$ Click **Add rule**.
+1. Open the **Amazon ECR Console** => Create 2 private repositories: `tracker-be` and `tracker-fe`.
+2. Navigate to **Private registry** => **Replication configuration** => Click **Add rule**.
 3. Destination regions: Add `ap-southeast-1` (Singapore) and `us-east-2` (Ohio).
 
 > [!NOTE]
@@ -122,10 +122,10 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.7: Launch Amazon EC2 Virtual Server & Elastic IP
 
-1. Open the **Amazon EC2 Console** $\rightarrow$ Click **Launch instance**.
+1. Open the **Amazon EC2 Console** => Click **Launch instance**.
 2. Name: `tracker-ec2-server`, AMI: **Amazon Linux 2023**, Instance type: `t2.micro`.
 3. Network settings: VPC `Tracker-VPC`, Subnet `tracker-public-subnet-1`, Security group `tracker-ec2-sg`.
-4. Advanced details: IAM instance profile $\rightarrow$ Select `tracker-ec2-role`.
+4. Advanced details: IAM instance profile => Select `tracker-ec2-role`.
 5. Allocate an **Elastic IP** and associate it with the EC2 instance (`3.106.194.112`).
 6. SSH into EC2 and install Docker & Docker Compose:
    ```bash
@@ -143,7 +143,7 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.8: Configure GitHub Secrets & CI/CD Pipeline
 
-1. In your GitHub repository, navigate to **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+1. In your GitHub repository, navigate to **Settings** => **Secrets and variables** => **Actions**.
 2. Add secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `EC2_HOST`, `EC2_SSH_KEY`.
 3. Push `.github/workflows/deploy.yml` to the `main` branch to trigger automatic Docker building, ECR pushing, and EC2 deployment.
 
@@ -156,7 +156,7 @@ Create two Security Groups inside `Tracker-VPC` to enforce strict network isolat
 
 ### Step 5.3.9: Configure Route 53 DNS & ACM SSL Certificate
 
-1. Open **Route 53 Console** $\rightarrow$ Create Hosted Zone for `trackermaint.dpdns.org`.
+1. Open **Route 53 Console** => Create Hosted Zone for `trackermaint.dpdns.org`.
 2. Create an **A Record** pointing `trackermaint.dpdns.org` to the EC2 Elastic IP (`3.106.194.112`).
 3. Request an **ACM Certificate** in `us-east-1` (N. Virginia) for `trackermaint.dpdns.org` to prepare for CloudFront integration.
 
