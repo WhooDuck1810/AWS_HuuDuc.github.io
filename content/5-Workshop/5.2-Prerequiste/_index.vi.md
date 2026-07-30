@@ -20,19 +20,19 @@ Trước khi bắt đầu triển khai dự án **Tracker Maintenance System** t
 
 ---
 
-### Bước 5.2.2: Khởi tạo IAM User cho GitHub Actions CI/CD Pipeline
+### Bước 5.2.2: Khởi tạo IAM User (`tracker-s3-uploader-2`) cho Upload S3 & Triển khai
 
-Để tự động hóa quá trình build Docker image và deploy từ GitHub mà không cần nạp tài khoản Root:
+Để cấp quyền cho Backend Spring Boot tải ảnh nghiệm thu lên S3 và hỗ trợ tự động hóa triển khai mà không cần dùng tài khoản Root hoặc `admin1`:
 
 1. Truy cập **AWS IAM Console** => **Users** => Chọn **Create user**.
-2. Nhập tên user: `github-actions-deployer`.
+2. Nhập tên user: `tracker-s3-uploader-2`.
 3. Tại phần **Permissions options**, chọn **Attach policies directly**.
-4. Tìm và tích chọn chính sách: `AmazonEC2ContainerRegistryFullAccess`.
+4. Tìm và tích chọn chính sách quyền lưu trữ S3 (ví dụ `AmazonS3FullAccess` hoặc chính sách S3 tùy chỉnh) và quyền ECR (`AmazonEC2ContainerRegistryFullAccess`).
 5. Xác nhận tạo user, sau đó vào mục **Security credentials** => **Create access key** => Chọn **Command Line Interface (CLI)**.
-6. Lưu lại cặp khóa **Access Key ID** và **Secret Access Key** để nạp vào GitHub Secrets.
+6. Lưu lại cặp khóa **Access Key ID** và **Secret Access Key** để nạp vào `.env` backend và GitHub Secrets.
 
 > [!NOTE]
-> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình chi tiết IAM User `github-actions-deployer` kèm chính sách ECR đã gắn trên AWS Console và dán vào vị trí bên dưới.
+> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình chi tiết IAM User `tracker-s3-uploader-2` kèm chính sách đã gắn trên AWS Console và dán vào vị trí bên dưới.
 > 
 > ![Khởi tạo IAM User](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
 
@@ -56,9 +56,8 @@ Cấp quyền cho máy chủ EC2 kéo Docker Image từ ECR và đẩy log về 
 
 ---
 
-### Bước 5.2.4: Tại sao cần tạo IAM Account mà KHÔNG dùng Root Account?
+### Bước 5.2.4: Tại sao cần dùng IAM User (`tracker-s3-uploader-2`) thay vì Root Account hoặc `admin1`?
 
-- **Nguyên tắc Quyền Tối thiểu (Principle of Least Privilege):** Chỉ cấp đúng quyền cần thiết cho tiến trình tự động hóa.
-- **Bảo mật Khóa Root:** Rò rỉ Key của Root có thể làm mất kiểm soát toàn bộ tài khoản và phát sinh chi phí ngoài ý muốn.
-- **Khả năng Truy vết (Auditability):** Mọi hành động được AWS CloudTrail ghi nhận rõ danh tính IAM User/Role thực hiện.
-
+- **Nguyên tắc Quyền Tối thiểu (Principle of Least Privilege):** Chỉ cấp đúng quyền upload S3/ECR cho ứng dụng qua `tracker-s3-uploader-2` thay vì dùng tài khoản có toàn quyền quản trị (`admin1` / Root).
+- **Cách ly Rủi ro Bảo mật:** Nếu Access Key bị lộ, hacker chỉ có thể thao tác trên S3 bucket/ECR mà không thể can thiệp hoặc xóa các tài nguyên AWS khác.
+- **Khả năng Truy vết (Auditability):** Mọi hành động gọi API S3/ECR đều được AWS CloudTrail ghi lại rõ danh tính `tracker-s3-uploader-2`.

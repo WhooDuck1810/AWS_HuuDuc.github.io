@@ -20,19 +20,19 @@ Before beginning the deployment of the Tracker Maintenance System on AWS, prepar
 
 ---
 
-### Step 5.2.2: Create IAM User for GitHub Actions CI/CD Pipeline
+### Step 5.2.2: Create IAM User (`tracker-s3-uploader-2`) for Programmatic S3 & Deployment Access
 
-To enable automated Docker image builds and deployment via GitHub Actions without hardcoding root account credentials:
+To enable programmatic media uploads from the Spring Boot backend to Amazon S3 and automated deployment without using the AWS Root account or `admin1` user:
 
 1. Navigate to the **AWS IAM Console** => **Users** => Click **Create user**.
-2. Set the username to `github-actions-deployer`.
+2. Set the username to `tracker-s3-uploader-2`.
 3. Under **Permissions options**, choose **Attach policies directly**.
-4. Search for and select `AmazonEC2ContainerRegistryFullAccess`.
+4. Search for and select policies for S3 storage access (e.g. `AmazonS3FullAccess` or custom S3 upload policy) and ECR access (`AmazonEC2ContainerRegistryFullAccess`).
 5. Confirm creation, then navigate to **Security credentials** => **Create access key** => Choose **Command Line Interface (CLI)**.
-6. Copy and save the generated **Access Key ID** and **Secret Access Key** securely.
+6. Copy and save the generated **Access Key ID** and **Secret Access Key** securely into your `.env` and GitHub Secrets.
 
 > [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS IAM Console screenshot showing the `github-actions-deployer` user details and attached ECR policy here.
+> 📸 **Screenshot Placeholder:** Attach your AWS IAM Console screenshot showing the `tracker-s3-uploader-2` user details and permissions here.
 > 
 > ![IAM User Setup](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
 
@@ -56,9 +56,8 @@ To grant the EC2 instance permission to pull Docker images from Amazon ECR and p
 
 ---
 
-### Step 5.2.4: Why Use IAM Accounts Instead of the Root Account?
+### Step 5.2.4: Why Use IAM Accounts (`tracker-s3-uploader-2`) Instead of the Root Account or `admin1`?
 
-- **Principle of Least Privilege (PoLP):** Grants only the exact permissions needed for specific automated pipelines or compute instances.
-- **Root Credentials Security:** Prevents accidental leakage of root credentials in code repositories or CI/CD settings.
-- **Auditability & Compliance:** AWS CloudTrail logs every API action with the exact IAM User/Role identity.
-
+- **Principle of Least Privilege (PoLP):** Isolates S3 uploading and deployment permissions specifically to `tracker-s3-uploader-2` rather than exposing full administrative permissions (`admin1` / Root).
+- **Security Isolation:** If an application credential is ever compromised, the blast radius is strictly limited to S3/ECR operations, protecting overall AWS account administration.
+- **Auditability & Compliance:** AWS CloudTrail logs every API action with the exact `tracker-s3-uploader-2` identity.
