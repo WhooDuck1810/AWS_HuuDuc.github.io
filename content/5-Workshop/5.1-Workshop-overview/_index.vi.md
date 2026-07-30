@@ -8,6 +8,15 @@ pre: " <b> 5.1. </b> "
 
 # 1. Giới thiệu
 
+<div style="text-align: center; margin: 20px 0;">
+
+  ![TrackerMaintenance Architecture](/images/5-Workshop/5.1-Workshop-overview/architecture.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 1. Kiến trúc tổng thể hạ tầng mạng và tích hợp các dịch vụ AWS cho dự án Tracker Maintenance.</div>
+</div>
+
+<br>
+
 ## 1.1 Tổng quan dự án
 
 **Hệ thống Quản lý và Bảo trì Thiết bị (Tracker Maintenance System)** là một ứng dụng Web full-stack cloud-native được thiết kế để quản lý, theo dõi và bảo trì toàn bộ vòng đời của các thiết bị công nghiệp. Hệ thống cho phép các tổ chức số hóa hoàn toàn quy trình bảo trì — từ việc báo cáo sự cố thiết bị, phân công kỹ thuật viên đến việc lập lịch bảo trì định kỳ, tải lên hình ảnh nghiệm thu và xuất báo cáo — tất cả trên một nền tảng Web tập trung phân quyền theo vai trò (Role-Based Access Control).

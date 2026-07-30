@@ -8,6 +8,15 @@ pre: " <b> 5.1. </b> "
 
 # 1. Introduction
 
+<div style="text-align: center; margin: 20px 0;">
+
+  ![TrackerMaintenance Architecture](/images/5-Workshop/5.1-Workshop-overview/architecture.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 1. Overall architecture of the network infrastructure and AWS service integration for the Tracker Maintenance project.</div>
+</div>
+
+<br>
+
 ## 1.1 Project Overview
 
 **Tracker Maintenance System** is a full-stack cloud-native web application designed to manage, track, and maintain industrial equipment throughout its lifecycle. The system enables organizations to digitize their entire equipment maintenance workflow — from reporting equipment faults and assigning technicians to scheduling periodic maintenance, uploading photo evidence, and generating reports — all through a unified, role-based web platform.
