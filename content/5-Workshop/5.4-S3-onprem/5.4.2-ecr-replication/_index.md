@@ -8,13 +8,14 @@ pre: " <b> 5.4.2. </b> "
 
 # 5.4.2 Configure Amazon ECR & Cross-Region Replication
 
-In this step, create private Docker repositories in Sydney and configure automatic replication to Singapore and Ohio.
-
-1. Open the **Amazon ECR Console** => Create 2 private repositories: `tracker-be` and `tracker-fe`.
-2. Navigate to **Private registry** => **Replication configuration** => Click **Add rule**.
-3. Destination regions: Add `ap-southeast-1` (Singapore) and `us-east-2` (Ohio).
+In this step, create private Docker registries on Amazon ECR for backend (`tracker-be`) and frontend (`tracker-fe`) images.
 
 > [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS ECR Console screenshot showing the repositories and Cross-Region Replication rules here.
-> 
-> ![ECR Setup](/images/5-Workshop/5.3-S3-vpc/ecr-replication-setup.png?classes=shadow)
+> ℹ️ **Important Note regarding Repository List:** In the screenshot below, the repository `aws/tracker_maintenance_app` was an initial experimental testing repository. Please focus exclusively on the two production repositories: **`tracker-be`** and **`tracker-fe`**.
+
+<div style="text-align: center; margin: 20px 0;">
+
+  ![ECR Repositories](/images/5-Workshop/5.4-S3-onprem/5.4.2-ecr-replication/ecr-repositories.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.4.2. Amazon ECR Private Repositories list displaying tracker-be and tracker-fe container images.</div>
+</div>

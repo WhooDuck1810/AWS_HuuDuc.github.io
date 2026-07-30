@@ -8,20 +8,22 @@ pre: " <b> 5.3.3. </b> "
 
 # 5.3.3 Configure Security Groups for EC2 & RDS
 
-In this step, create two virtual firewalls in `Tracker-VPC` to enforce strict isolation.
+In this step, configure two virtual firewall security groups to enforce isolation between the public web instance and the private database.
 
-1. **EC2 Security Group (`tracker-ec2-sg`):**
-   - **Inbound Rules:**
-     - SSH (22) => Your IP
-     - HTTP (80) => `0.0.0.0/0`
-     - HTTPS (443) => `0.0.0.0/0`
-     - Custom TCP (3000) => `0.0.0.0/0` (Frontend React)
-     - Custom TCP (8081) => `0.0.0.0/0` (Backend Spring Boot API)
-2. **RDS Security Group (`tracker-rds-sg`):**
-   - **Inbound Rules:**
-     - PostgreSQL (5432) => Source: `tracker-ec2-sg` (Security Group ID).
+### 1. Inbound Rules Configuration
+- **SSH (22):** `0.0.0.0/0` (Remote access)
+- **HTTP (80):** `0.0.0.0/0` (Public web traffic)
+- **HTTPS (443):** `0.0.0.0/0` (Secure web traffic)
+- **Custom TCP (3000):** Frontend React App container
+- **Custom TCP (8081):** Backend Spring Boot API container
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS Console screenshot showing the Inbound Rules for `tracker-ec2-sg` and `tracker-rds-sg` here.
-> 
-> ![Security Groups Setup](/images/5-Workshop/5.3-S3-vpc/security-groups-setup.png?classes=shadow)
+### 2. Outbound Rules Configuration
+- **All Traffic:** `0.0.0.0/0`
+- **PostgreSQL (5432):** Routed to RDS Security Group (`ec2-rds-1` / `sg-0c0bf5f62fdf25148`)
+
+<div style="text-align: center; margin: 20px 0;">
+
+  ![Security Groups Rules](/images/5-Workshop/5.3-S3-vpc/5.3.3-security-groups/security-groups-rules.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.4. Inbound and Outbound Security Group rules for EC2 server and RDS database connection.</div>
+</div>

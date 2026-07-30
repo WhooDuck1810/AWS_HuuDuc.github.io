@@ -8,13 +8,14 @@ pre: " <b> 5.4.2. </b> "
 
 # 5.4.2 Cấu hình Amazon ECR & Cross-Region Replication (Singapore & Ohio)
 
-Trong bước này, tạo kho Docker Registry riêng tư và thiết lập tự động đồng bộ sang vùng Singapore và Ohio.
-
-1. Mở **Amazon ECR Console** => Tạo 2 repository riêng tư: `tracker-be` và `tracker-fe`.
-2. Mở **Private registry** => **Replication configuration** => Chọn **Add rule**.
-3. Vùng đích: Thêm `ap-southeast-1` (Singapore) và `us-east-2` (Ohio).
+Trong bước này, tạo kho lưu trữ Docker Registry riêng tư trên Amazon ECR cho các image backend (`tracker-be`) và frontend (`tracker-fe`).
 
 > [!NOTE]
-> 📸 **Vị trí chèn ảnh màn hình:** Chụp ảnh màn hình danh sách ECR Repository và quy tắc Cross-Region Replication đính kèm vào bên dưới.
-> 
-> ![Cấu hình ECR Replication](/images/5-Workshop/5.3-S3-vpc/ecr-replication-setup.png?classes=shadow)
+> ℹ️ **Lưu ý quan trọng về danh sách Repository:** Trong hình ảnh bên dưới, repository `aws/tracker_maintenance_app` là kho lưu trữ thử nghiệm ban đầu. Bạn vui lòng tập trung vào 02 repository chính thức phục vụ triển khai hệ thống là: **`tracker-be`** và **`tracker-fe`**.
+
+<div style="text-align: center; margin: 20px 0;">
+
+  ![ECR Repositories](/images/5-Workshop/5.4-S3-onprem/5.4.2-ecr-replication/ecr-repositories.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.4.2. Danh sách Amazon ECR Private Repositories bao gồm tracker-be và tracker-fe.</div>
+</div>

@@ -8,16 +8,19 @@ pre: " <b> 5.3.4. </b> "
 
 # 5.3.4 Provision Amazon RDS PostgreSQL Database
 
-In this step, deploy a managed PostgreSQL database inside the Private Subnet.
+In this step, deploy a managed PostgreSQL relational database instance inside the Private Subnet of `Tracker-VPC`.
 
-1. Open the **Amazon RDS Console** => Click **Create database**.
-2. Choose **Standard create** => Engine: **PostgreSQL** (Version 15.x).
-3. Template: **Free Tier** => Instance class: `db.t4g.micro`.
-4. Settings: DB instance identifier `tracker-maintenance-db`, Master username `postgres`.
-5. Connectivity: Network `Tracker-VPC`, Subnet group in Private Subnet, Public access: **No**.
-6. Security group: Choose `tracker-rds-sg`.
+### Database Specifications
+- **DB Instance Identifier:** `tracker-maintenance-db`
+- **Database Engine:** PostgreSQL 15.x
+- **Instance Class:** `db.t3.micro`
+- **Status:** **Available** ✅
+- **Region & AZ:** `ap-southeast-2b` (Sydney)
+- **Public Access:** Disabled (Private Subnet only)
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS RDS Console screenshot showing the `tracker-maintenance-db` details and Endpoint connection string here.
-> 
-> ![RDS Database Setup](/images/5-Workshop/5.3-S3-vpc/rds-db-setup.png?classes=shadow)
+<div style="text-align: center; margin: 20px 0;">
+
+  ![RDS Database Summary](/images/5-Workshop/5.3-S3-vpc/5.3.4-rds-database/rds-summary.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.5. Amazon RDS PostgreSQL instance summary showing Available status and private connectivity settings.</div>
+</div>

@@ -8,21 +8,20 @@ pre: " <b> 5.5.1. </b> "
 
 # 5.5.1 Provision EC2 Instance & Elastic IP
 
-In this step, launch the Amazon EC2 virtual server and attach a static Elastic IP address.
+In this step, launch the Amazon EC2 virtual server (`tracker-maintenance-server`) and attach a static Elastic IP address (`3.106.194.112`).
 
-1. Open the **Amazon EC2 Console** => Click **Launch instance**.
-2. Name: `tracker-ec2-server`, AMI: **Amazon Linux 2023**, Instance type: `t2.micro`.
-3. Network settings: VPC `Tracker-VPC`, Subnet `tracker-public-subnet-1`, Security group `tracker-ec2-sg`.
-4. Advanced details: IAM instance profile => Select `tracker-ec2-role`.
-5. Allocate an **Elastic IP** and associate it with the EC2 instance (`3.106.194.112`).
-6. SSH into EC2 and install Docker & Docker Compose:
-   ```bash
-   sudo yum install docker -y
-   sudo systemctl enable docker && sudo systemctl start docker
-   sudo usermod -aG docker ec2-user
-   ```
+### Instance Summary Details
+- **Instance ID:** `i-00df249a6bd8ee5f4`
+- **Instance Name:** `tracker-maintenance-server`
+- **Instance State:** **Running** ✅
+- **Instance Type:** `t3.small`
+- **Public IPv4 Address:** `3.106.194.112` (Elastic IP)
+- **Private IPv4 Address:** `172.31.39.246`
+- **IAM Role:** `ec2-ecr-role`
 
-> [!NOTE]
-> 📸 **Screenshot Placeholder:** Attach your AWS EC2 Console screenshot showing the `tracker-ec2-server` status and Elastic IP association here.
-> 
-> ![EC2 Instance Setup](/images/5-Workshop/5.3-S3-vpc/ec2-instance-setup.png?classes=shadow)
+<div style="text-align: center; margin: 20px 0;">
+
+  ![EC2 Instance Summary](/images/5-Workshop/5.5-Policy/5.5.1-ec2-instance/ec2-summary.png?classes=shadow)
+
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.5.1. EC2 Instance summary for tracker-maintenance-server showing Running state, Elastic IP, and IAM role.</div>
+</div>
