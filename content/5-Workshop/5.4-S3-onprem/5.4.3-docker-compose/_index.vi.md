@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4.3. </b> "
 ---
 
-# 5.4.3 Đóng gói Docker Multi-Stage & Docker Compose trên EC2
-
 Trong bước này, bạn sẽ đóng gói ứng dụng Backend và Frontend thành các Docker Container tối ưu bộ nhớ RAM và thực thi điều phối bằng Docker Compose trên máy chủ EC2.
 
 ---

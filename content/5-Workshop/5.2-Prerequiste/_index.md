@@ -6,7 +6,6 @@ chapter: false
 pre: " <b> 5.2. </b> "
 ---
 
-# 5.2. Prerequisite
 
 Before beginning the deployment of the Tracker Maintenance System on AWS, prepare the local developer workstation and IAM access credentials.
 
@@ -35,7 +34,7 @@ To enable programmatic media uploads from the Spring Boot backend to Amazon S3 a
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![IAM User Setup](/images/5-Workshop/5.2-Prerequisite/iam-user-setup.png?classes=shadow)
+  ![IAM User Setup](iam-user-setup.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.2.1. Unified IAM User (tracker-s3-uploader-2) with attached AmazonEC2ContainerRegistryFullAccess and AmazonS3FullAccess policies.</div>
 </div>

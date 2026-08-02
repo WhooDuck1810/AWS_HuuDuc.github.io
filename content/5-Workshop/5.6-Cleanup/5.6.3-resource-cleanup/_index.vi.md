@@ -1,12 +1,10 @@
 ---
-title: "Hướng dẫn Dọn dẹp Tài nguyên"
+title: "Hướng dẫn Dọn dẹp Tài nguyên (Stop vs Terminate)"
 date: 2026-07-30
 weight: 3
 chapter: false
 pre: " <b> 5.6.3. </b> "
 ---
-
-# 5.6.3 Hướng dẫn Dọn dẹp Tài nguyên (Stop vs Terminate)
 
 Thực hiện theo các bước chi tiết dưới đây để tạm dừng hoặc hủy bỏ hoàn toàn các tài nguyên AWS nhằm tránh phát sinh chi phí ngoài ý muốn.
 

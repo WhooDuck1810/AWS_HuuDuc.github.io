@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.6.2. </b> "
 ---
 
-# 5.6.2 Quản lý Log & Giám sát tập trung với CloudWatch
-
 Trong bước này, bạn sẽ theo dõi chỉ số hiệu năng cơ sở dữ liệu thời gian thực và quản lý các nhóm nhật ký (Log Groups) trên Amazon CloudWatch.
 
 ---
@@ -24,7 +22,7 @@ Trong bước này, bạn sẽ theo dõi chỉ số hiệu năng cơ sở dữ l
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![CloudWatch Database Insights](/images/5-Workshop/5.6-Cleanup/5.6.2-cloudwatch-logs/cloudwatch-db-insights.png?classes=shadow)
+  ![CloudWatch Database Insights](cloudwatch-db-insights.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.6.3. Giao diện CloudWatch Database Insights giám sát chỉ số tải CPU, active sessions và Top câu lệnh SQL của database.</div>
 </div>
@@ -41,7 +39,7 @@ Trong bước này, bạn sẽ theo dõi chỉ số hiệu năng cơ sở dữ l
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![CloudWatch Log Groups](/images/5-Workshop/5.6-Cleanup/5.6.2-cloudwatch-logs/cloudwatch-log-groups.png?classes=shadow)
+  ![CloudWatch Log Groups](cloudwatch-log-groups.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.6.4. Trang quản lý CloudWatch Log Groups hiển thị các nhóm log hạ tầng bao gồm RDSOSMetrics.</div>
 </div>

@@ -6,11 +6,9 @@ chapter: false
 pre: " <b> 5.1. </b> "
 ---
 
-# 5.1. Introduction
-
 <div style="text-align: center; margin: 20px 0;">
 
-  ![TrackerMaintenance Architecture](/images/5-Workshop/5.1-Workshop-overview/architecture.png?classes=shadow)
+  ![TrackerMaintenance Architecture](AWS_Architecture.png)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 1. Overall architecture of the network infrastructure and AWS service integration for the Tracker Maintenance project.</div>
 </div>

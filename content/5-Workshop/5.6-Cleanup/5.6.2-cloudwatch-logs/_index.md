@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.6.2. </b> "
 ---
 
-# 5.6.2 Centralized Logging & Monitoring with CloudWatch
-
 In this step, monitor database performance telemetry and inspect system log groups in Amazon CloudWatch.
 
 ---
@@ -24,7 +22,7 @@ In this step, monitor database performance telemetry and inspect system log grou
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![CloudWatch Database Insights](/images/5-Workshop/5.6-Cleanup/5.6.2-cloudwatch-logs/cloudwatch-db-insights.png?classes=shadow)
+  ![CloudWatch Database Insights](cloudwatch-db-insights.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.6.3. CloudWatch Database Insights dashboard monitoring tracker-maintenance-db active sessions, CPU load, and Top SQL statements.</div>
 </div>
@@ -41,7 +39,7 @@ In this step, monitor database performance telemetry and inspect system log grou
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![CloudWatch Log Groups](/images/5-Workshop/5.6-Cleanup/5.6.2-cloudwatch-logs/cloudwatch-log-groups.png?classes=shadow)
+  ![CloudWatch Log Groups](cloudwatch-log-groups.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.6.4. CloudWatch Log Groups management dashboard displaying RDSOSMetrics telemetry stream.</div>
 </div>

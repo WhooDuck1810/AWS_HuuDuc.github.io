@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4. </b> "
 ---
 
-# 5.4. Lưu trữ S3, ECR & Đóng gói Docker
-
 Trong phần này, cấu hình kho lưu trữ đối tượng Amazon S3 cho hình ảnh nghiệm thu, tạo kho Docker Registry ECR tích hợp sao chép đa vùng và đóng gói ứng dụng bằng Docker Container.
 
 ### Các bước thực hiện

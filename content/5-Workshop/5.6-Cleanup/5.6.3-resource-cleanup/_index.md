@@ -1,12 +1,10 @@
 ---
-title: "Resource Clean Up Guide"
+title: "Resource Clean Up Guide (Stop vs Terminate)"
 date: 2026-07-30
 weight: 3
 chapter: false
 pre: " <b> 5.6.3. </b> "
 ---
-
-# 5.6.3 Resource Clean Up Guide (Stop vs Terminate)
 
 Follow these step-by-step instructions to temporarily pause or permanently decommission AWS resources to prevent unexpected billing.
 

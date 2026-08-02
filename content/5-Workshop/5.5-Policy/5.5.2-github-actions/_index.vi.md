@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.5.2. </b> "
 ---
 
-# 5.5.2 Cấu hình GitHub Secrets & Luồng Tự động hóa CI/CD
-
 Trong bước này, bạn sẽ lưu trữ các thông tin xác thực an toàn trong GitHub Repository Secrets và tự động hóa luồng triển khai lên máy chủ AWS EC2.
 
 ---
@@ -100,7 +98,7 @@ jobs:
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Lịch sử chạy GitHub Actions](/images/5-Workshop/5.5-Policy/5.5.2-github-actions/github-actions-runs.png?classes=shadow)
+  ![Lịch sử chạy GitHub Actions](github-actions-runs.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.5.2. Nhật ký chạy thành công các luồng tự động hóa Deploy to EC2 trên GitHub Actions.</div>
 </div>

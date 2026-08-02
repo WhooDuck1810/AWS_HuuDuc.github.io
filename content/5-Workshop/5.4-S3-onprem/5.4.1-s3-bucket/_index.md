@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4.1. </b> "
 ---
 
-# 5.4.1 Configure Amazon S3 Bucket for Media Storage
-
 In this step, create an Amazon S3 Bucket to store uploaded equipment inspection photos and maintenance evidence offloaded from EC2.
 
 ---
@@ -51,7 +49,7 @@ In this step, create an Amazon S3 Bucket to store uploaded equipment inspection 
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![S3 Bucket Policy](/images/5-Workshop/5.4-S3-onprem/5.4.1-s3-bucket/s3-policy.png?classes=shadow)
+  ![S3 Bucket Policy](s3-policy.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.4.1. Amazon S3 Bucket Permissions showing Block Public Access settings and PublicReadGetObject policy.</div>
 </div>

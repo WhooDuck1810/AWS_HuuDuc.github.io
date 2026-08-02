@@ -1,16 +1,14 @@
 ---
-title: "Introduction"
+title: "Giới thiệu"
 date: 2026-07-30
 weight: 1
 chapter: false
 pre: " <b> 5.1. </b> "
 ---
 
-# 5.1. Giới thiệu
-
 <div style="text-align: center; margin: 20px 0;">
 
-  ![TrackerMaintenance Architecture](/images/5-Workshop/5.1-Workshop-overview/architecture.png?classes=shadow)
+  ![TrackerMaintenance Architecture](AWS_Architecture_new.png)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 1. Kiến trúc tổng thể hạ tầng mạng và tích hợp các dịch vụ AWS cho dự án Tracker Maintenance.</div>
 </div>

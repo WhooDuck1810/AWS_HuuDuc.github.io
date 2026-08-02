@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.6.4. </b> "
 ---
 
-# 5.6.4 Khó khăn gặp phải & Hướng phát triển tương lai
-
 Trong phần cuối này, bạn sẽ tổng kết các thách thức kỹ thuật gặp phải trong quá trình triển khai hệ thống lên Cloud, nguyên nhân gốc rễ, giải pháp đã áp dụng và định hướng nâng cấp kiến trúc trong tương lai.
 
 ---

@@ -1,12 +1,10 @@
 ---
-title: "Khởi tạo Custom VPC & Phân chia Subnet"
+title: "Khởi tạo Custom VPC & Phân chia Subnet (Public/Private)"
 date: 2026-07-30
 weight: 1
 chapter: false
 pre: " <b> 5.3.1. </b> "
 ---
-
-# 5.3.1 Khởi tạo Custom VPC & Phân chia Subnet (Public/Private)
 
 Trong bước này, bạn sẽ khởi tạo một mạng riêng ảo cách ly (`Tracker-VPC-vpc`) và phân chia dải mạng Public Subnet (cho máy chủ web EC2) và Private Subnet (cho cơ sở dữ liệu RDS).
 
@@ -63,14 +61,15 @@ Trong bước này, bạn sẽ khởi tạo một mạng riêng ảo cách ly (`
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Sơ đồ tài nguyên VPC](/images/5-Workshop/5.3-S3-vpc/5.3.1-vpc-subnets/vpc-resource-map.png?classes=shadow)
+  ![Sơ đồ tài nguyên VPC](images/vpc-resource-map.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.3.1. Sơ đồ tài nguyên (Resource Map) của Tracker-VPC-vpc hiển thị liên kết giữa VPC, Subnet, Bảng tuyến đường và Internet Gateway.</div>
 </div>
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Danh sách Subnet](/images/5-Workshop/5.3-S3-vpc/5.3.1-vpc-subnets/subnets-list.png?classes=shadow)
+  ![Danh sách Subnet](images/subnets-list.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.3.2. Danh sách Subnet công khai và riêng tư được khởi tạo trong Tracker-VPC-vpc.</div>
+
 </div>

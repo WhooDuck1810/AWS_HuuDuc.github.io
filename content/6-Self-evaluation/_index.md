@@ -6,14 +6,11 @@ chapter: false
 pre: " <b> 6. </b> "
 ---
 
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy it verbatim** into your report, including this warning.
-{{% /notice %}}
+During my internship at **Amazon Web Services Viet Nam** (through the Workforce Bootcamp - First Cloud AI Journey program) from **June 01, 2026** to **July 31, 2026**, I had the opportunity to learn, practice, and apply my specialized knowledge in a real-world working environment.
 
-During my internship at **[Company/Organization Name]** from **[start date]** to **[end date]**, I had the opportunity to learn, practice, and apply the knowledge acquired in school to a real-world working environment.  
-I participated in **[briefly describe the main project or task]**, through which I improved my skills in **[list skills: programming, analysis, reporting, communication, etc.]**.  
+I directly participated in **exploring core AWS services, designing cloud architectures, and deploying the final project's infrastructure using CI/CD pipelines**. Through this, I significantly improved my skills in **Infrastructure as Code (CloudFormation), cloud network administration, technical troubleshooting, as well as teamwork and professional report writing**.
 
-In terms of work ethic, I always strived to complete tasks well, complied with workplace regulations, and actively engaged with colleagues to improve work efficiency.
+In terms of work ethic, I always strived to accomplish my tasks well, strictly followed workplace regulations, and actively communicated with colleagues and mentors to enhance work efficiency.
 
 To objectively reflect on my internship period, I would like to evaluate myself based on the following criteria:
 
@@ -23,7 +20,7 @@ To objectively reflect on my internship period, I would like to evaluate myself 
 | 2   | **Ability to learn**                | Ability to absorb new knowledge and learn quickly                                                | ☐    | ✅    | ☐       |
 | 3   | **Proactiveness**                   | Taking initiative, seeking out tasks without waiting for instructions                            | ✅    | ☐    | ☐       |
 | 4   | **Sense of responsibility**         | Completing tasks on time and ensuring quality                                                    | ✅    | ☐    | ☐       |
-| 5   | **Discipline**                      | Adhering to schedules, rules, and work processes                                                 | ☐    | ☐    | ✅       |
+| 5   | **Discipline**                      | Adhering to schedules, rules, and work processes                                                 | ✅    | ☐    | ☐       |
 | 6   | **Progressive mindset**             | Willingness to receive feedback and improve oneself                                              | ☐    | ✅    | ☐       |
 | 7   | **Communication**                   | Presenting ideas and reporting work clearly                                                      | ☐    | ✅    | ☐       |
 | 8   | **Teamwork**                        | Working effectively with colleagues and participating in teams                                   | ✅    | ☐    | ☐       |
@@ -34,7 +31,6 @@ To objectively reflect on my internship period, I would like to evaluate myself 
 
 ### Needs Improvement
 
-* Strengthen discipline and strictly comply with the rules and regulations of the company or any organization  
-* Improve problem-solving thinking  
-* Enhance communication skills in both daily interactions and professional contexts, including handling situations effectively
-
+* **Time management skills:** Need to allocate time more efficiently when absorbing a large amount of new technological knowledge and handling multiple workflows simultaneously.
+* **Problem-solving mindset:** Continue to refine root cause analysis skills, especially when troubleshooting system issues, to deliver faster and more optimal solutions.
+* **Professional communication skills:** Hone presentation and communication skills to confidently and clearly articulate complex technical solutions.

@@ -70,6 +70,11 @@ Although the generated assets might not be immediately usable for AAA projects d
 * **AWS Games Blog – Open source 3D game asset generation using AWS:** https://aws.amazon.com/blogs/aws/open-source-3d-game-asset-generation-using-aws/
 * **TripoSG Repository:** https://github.com/VAST-AI-Research/TripoSG
 * **MV-Adapter Repository:** https://github.com/huanngzh/MV-Adapter
-  
-<img src="/AWS_HuuDuc/images/Blogs/blog2.png" alt="Blog 2" width="1000" />
 
+<div style="text-align: center; margin: 20px 0;">
+  <img src="blog2.png" alt="AWS AI Gateway Pattern" style="max-width: 100%; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); border-radius: 4px;" />
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">AWS AI Gateway Pattern</div>
+</div>
+
+## Published Post
+[https://www.facebook.com/groups/awsstudygroupfcj/posts/2229283721169921](https://www.facebook.com/groups/awsstudygroupfcj/posts/2229283721169921)

@@ -1,12 +1,10 @@
 ---
-title: "Cấu hình Internet Gateway & Bảng tuyến đường"
+title: "Cấu hình Internet Gateway & Bảng tuyến đường (Route Tables)"
 date: 2026-07-30
 weight: 2
 chapter: false
 pre: " <b> 5.3.2. </b> "
 ---
-
-# 5.3.2 Cấu hình Internet Gateway & Bảng tuyến đường (Route Tables)
 
 Trong bước này, bạn sẽ mở kết nối Internet cho dải Public Subnet bằng cách tạo Cổng Internet (Internet Gateway `Tracker-VPC-igw`), Attach vào VPC và cấu hình Bảng tuyến đường Route Table.
 
@@ -31,7 +29,7 @@ Trong bước này, bạn sẽ mở kết nối Internet cho dải Public Subnet
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Cấu hình Internet Gateway](/images/5-Workshop/5.3-S3-vpc/5.3.2-igw-route-table/igw-setup.png?classes=shadow)
+  ![Cấu hình Internet Gateway](igw-setup.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Hình 5.3.3. Chi tiết Internet Gateway (Tracker-VPC-igw) trạng thái Attached thành công vào Tracker-VPC-vpc.</div>
 </div>

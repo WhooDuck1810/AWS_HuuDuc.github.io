@@ -79,6 +79,10 @@ The AI Gateway pattern strikes a great balance between developer experience and 
 * **GitHub Repository:**
   https://github.com/aws-samples/amazon-api-gateway-ai-gateway-pattern
   
+<div style="text-align: center; margin: 20px 0;">
+  <img src="blog1.png" alt="AWS AI Gateway Pattern" style="max-width: 100%; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); border-radius: 4px;" />
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">AWS AI Gateway Pattern</div>
+</div>
 
-<img src="/AWS_HuuDuc/images/Blogs/blog1.png" alt="Blog 1" width="1000" />
-
+## Published Post
+[https://www.facebook.com/groups/awsstudygroupfcj/posts/2226894971408796/](https://www.facebook.com/groups/awsstudygroupfcj/posts/2226894971408796/)

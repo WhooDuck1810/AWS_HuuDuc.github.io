@@ -91,3 +91,10 @@ The addition of the MiniMax family on Amazon Bedrock provides another powerful o
 https://aws.amazon.com/blogs/machine-learning/run-minimax-models-on-amazon-bedrock/
 * **MiniMax Models Documentation on AWS:** https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-minimax.html
 
+<div style="text-align: center; margin: 20px 0;">
+  <img src="blog3.png" alt="AWS AI Gateway Pattern" style="max-width: 100%; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); border-radius: 4px;" />
+  <div style="font-weight: bold; margin-top: 8px; color: #555;">AWS AI Gateway Pattern</div>
+</div>
+
+## Published Post
+[https://www.facebook.com/groups/awsstudygroupfcj/posts/2228501271248166](https://www.facebook.com/groups/awsstudygroupfcj/posts/2228501271248166)

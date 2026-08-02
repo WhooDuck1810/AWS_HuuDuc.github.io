@@ -39,7 +39,7 @@ Toàn bộ cơ sở hạ tầng được triển khai trên AWS trong mạng n�
 - **AWS Lambda & Amazon SNS:** Xử lý luồng sự kiện tự động (Event-Driven). Khi có file mới trên S3, Lambda sẽ được kích hoạt để xử lý và SNS sẽ gửi thông báo đến kỹ thuật viên.
 - **Amazon CloudWatch:** Dịch vụ giám sát và lưu trữ log tập trung để phát hiện lỗi hệ thống.
 
-![Kiến trúc hệ thống](/images/2-Proposal/architecture.png?classes=shadow)
+![Kiến trúc hệ thống](AWS_Architecture_new.png?classes=shadow)
 
 **Các luồng dữ liệu chính:**
 - **Luồng xác thực bảo mật:** Người dùng gửi yêu cầu đăng nhập. Máy chủ EC2 kiểm tra logic Brute-force (chặn nếu sai quá nhiều lần). Nếu hợp lệ, Backend cấp phát một JWT Token an toàn để người dùng truy cập các API nghiệp vụ.
@@ -72,4 +72,3 @@ Kiến trúc kết hợp giữa EC2 và các dịch vụ quản lý của AWS gi
 
 ### 9. Kết quả kỳ vọng
 Triển khai thành công hệ thống Tracker Maintenance bảo mật, hoạt động ổn định và tối ưu hiệu năng. Dự án là minh chứng cho khả năng kết hợp nhuần nhuyễn giữa kiến trúc Web đa lớp truyền thống (EC2, RDS) và các tính năng Cloud hiện đại (S3 Pre-signed URL, Event-Driven Lambda), mang lại một công cụ quản lý bảo trì mạnh mẽ và tự chủ hoàn toàn về mặt xác thực.
-

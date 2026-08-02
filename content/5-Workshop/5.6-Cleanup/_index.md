@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.6. </b> "
 ---
 
-# 5.6. DNS, Monitoring & Future Roadmap
-
 In this section, configure custom domain DNS & SSL certificates, monitor application container logs via CloudWatch, review resource cleanup procedures, and explore future architectural roadmaps.
 
 ### Content Steps

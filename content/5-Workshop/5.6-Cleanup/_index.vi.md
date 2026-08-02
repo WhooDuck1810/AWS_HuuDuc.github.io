@@ -6,7 +6,6 @@ chapter: false
 pre: " <b> 5.6. </b> "
 ---
 
-# 5.6. Tên miền, CloudWatch & Hướng phát triển
 
 Trong phần này, cấu hình tên miền Route 53, chứng chỉ ACM SSL, quản lý log tập trung trên CloudWatch, quy trình dọn dẹp tài nguyên và định hướng phát triển trong tương lai.
 

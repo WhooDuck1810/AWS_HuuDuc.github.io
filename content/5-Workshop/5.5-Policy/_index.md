@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.5. </b> "
 ---
 
-# 5.5. Compute & Automated CI/CD Deployment
-
 In this section, provision the Amazon EC2 virtual server with an Elastic IP and configure the automated GitHub Actions CI/CD deployment pipeline to AWS.
 
 ### Content Steps

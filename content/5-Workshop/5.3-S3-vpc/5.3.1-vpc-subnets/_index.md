@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.3.1. </b> "
 ---
 
-# 5.3.1 Create Custom VPC & Subnets
-
 In this step, provision an isolated virtual private network (`Tracker-VPC-vpc`) and allocate public and private subnets across availability zones.
 
 ---
@@ -63,14 +61,14 @@ In this step, provision an isolated virtual private network (`Tracker-VPC-vpc`) 
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Tracker VPC Resource Map](/images/5-Workshop/5.3-S3-vpc/5.3.1-vpc-subnets/vpc-resource-map.png?classes=shadow)
+  ![Tracker VPC Resource Map](images/vpc-resource-map.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.1. AWS VPC Resource Map showing Tracker-VPC-vpc, Subnets, Route Tables, and Internet Gateway connection.</div>
 </div>
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Tracker Subnets List](/images/5-Workshop/5.3-S3-vpc/5.3.1-vpc-subnets/subnets-list.png?classes=shadow)
+  ![Tracker Subnets List](images/subnets-list.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.2. Subnet allocation list showing public and private subnets inside Tracker-VPC-vpc.</div>
 </div>

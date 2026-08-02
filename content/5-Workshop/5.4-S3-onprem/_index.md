@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4. </b> "
 ---
 
-# 5.4. Storage, ECR & Containerization
-
 In this section, configure Amazon S3 object storage for media assets, set up Amazon ECR image repositories with Cross-Region Replication, and prepare Docker container builds.
 
 ### Content Steps

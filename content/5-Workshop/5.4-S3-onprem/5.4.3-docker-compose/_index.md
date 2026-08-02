@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4.3. </b> "
 ---
 
-# 5.4.3 Multi-Stage Docker & Remote Docker Compose Setup
-
 In this step, package the application services into multi-stage Docker containers and orchestrate them with Docker Compose on the EC2 server.
 
 ---

@@ -6,17 +6,13 @@ chapter: false
 pre: " <b> 6. </b> "
 ---
 
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
+Trong suốt thời gian thực tập tại **Công ty TNHH Amazon Web Services Viet Nam** (thông qua chương trình Workforce Bootcamp - First Cloud AI Journey) từ ngày **01/06/2026** đến ngày **31/07/2026**, em đã có cơ hội học hỏi, rèn luyện và áp dụng những kiến thức chuyên ngành vào môi trường thực tế. 
 
-Trong suốt thời gian thực tập tại **[Tên công ty/tổ chức]** từ **[ngày bắt đầu]** đến **[ngày kết thúc]**, tôi đã có cơ hội học hỏi, rèn luyện và áp dụng kiến thức đã được trang bị tại trường vào môi trường làm việc thực tế.  
-Tôi đã tham gia **[mô tả ngắn gọn dự án hoặc công việc chính]**, qua đó cải thiện kỹ năng **[liệt kê kỹ năng: lập trình, phân tích, viết báo cáo, giao tiếp…]**.  
+Em đã trực tiếp tham gia **tìm hiểu các dịch vụ cốt lõi của AWS, thiết kế kiến trúc đám mây và triển khai hệ thống hạ tầng dự án cuối khóa với quy trình CI/CD**, qua đó cải thiện đáng kể các kỹ năng **triển khai hạ tầng dưới dạng mã (CloudFormation), quản trị mạng đám mây, giải quyết sự cố kỹ thuật, cũng như kỹ năng làm việc nhóm và viết báo cáo chuyên nghiệp**. 
 
-Về tác phong, tôi luôn cố gắng hoàn thành tốt nhiệm vụ, tuân thủ nội quy, và tích cực trao đổi với đồng nghiệp để nâng cao hiệu quả công việc.
+Về tác phong, em luôn cố gắng hoàn thành tốt nhiệm vụ, tuân thủ nội quy, và tích cực trao đổi với đồng nghiệp cũng như cố vấn (mentor) để nâng cao hiệu quả công việc.
 
-Để phản ánh một cách khách quan quá trình thực tập, tôi xin tự đánh giá bản thân dựa trên các tiêu chí dưới đây:
-
+Để phản ánh một cách khách quan quá trình thực tập, em xin tự đánh giá bản thân dựa trên các tiêu chí dưới đây:
 
 | STT | Tiêu chí                            | Mô tả                                                                                            | Tốt | Khá | Trung bình |
 | --- | ----------------------------------- | ------------------------------------------------------------------------------------------------ | --- | --- | ---------- |
@@ -24,7 +20,7 @@ Về tác phong, tôi luôn cố gắng hoàn thành tốt nhiệm vụ, tuân t
 | 2   | **Khả năng học hỏi**                | Tiếp thu kiến thức mới, học hỏi nhanh                                                            | ☐   | ✅   | ☐          |
 | 3   | **Chủ động**                        | Tự tìm hiểu, nhận nhiệm vụ mà không chờ chỉ dẫn                                                  | ✅   | ☐   | ☐          |
 | 4   | **Tinh thần trách nhiệm**           | Hoàn thành công việc đúng hạn, đảm bảo chất lượng                                                | ✅   | ☐   | ☐          |
-| 5   | **Kỷ luật**                         | Tuân thủ giờ giấc, nội quy, quy trình làm việc                                                   | ☐   | ☐   | ✅          |
+| 5   | **Kỷ luật**                         | Tuân thủ giờ giấc, nội quy, quy trình làm việc                                                   | ✅   | ☐   |   ☐        |
 | 6   | **Tính cầu tiến**                   | Sẵn sàng nhận feedback và cải thiện bản thân                                                     | ☐   | ✅   | ☐          |
 | 7   | **Giao tiếp**                       | Trình bày ý tưởng, báo cáo công việc rõ ràng                                                     | ☐   | ✅   | ☐          |
 | 8   | **Hợp tác nhóm**                    | Làm việc hiệu quả với đồng nghiệp, tham gia nhóm                                                 | ✅   | ☐   | ☐          |
@@ -35,6 +31,6 @@ Về tác phong, tôi luôn cố gắng hoàn thành tốt nhiệm vụ, tuân t
 
 ### Cần cải thiện
 
-* Nâng cao tính kỹ luật, chấp hành nghiêm chỉnh nội quy của công ty hoặc bất kỳ trong một tổ chức nào
-* Cải thiện trong cách tư duy giải quyết vấn đề
-* Học cách giao tiếp tốt hơn trong giao tiếp hằng ngày và trong công việc, xử lý tình huống
+* **Kỹ năng quản lý thời gian:** Cần phân bổ thời gian hiệu quả hơn khi phải tiếp thu lượng kiến thức lớn về công nghệ mới và xử lý nhiều luồng công việc cùng lúc.
+* **Tư duy giải quyết vấn đề:** Tiếp tục rèn luyện khả năng phân tích gốc rễ vấn đề (root cause analysis), đặc biệt là khi xử lý các sự cố hệ thống (troubleshooting) để đưa ra giải pháp nhanh chóng và tối ưu hơn.
+* **Kỹ năng giao tiếp chuyên nghiệp:** Trau dồi khả năng thuyết trình và giao tiếp, tự tin hơn khi trình bày các giải pháp kỹ thuật phức tạp một cách mạch lạc, dễ hiểu.

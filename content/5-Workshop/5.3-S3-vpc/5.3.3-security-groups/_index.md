@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.3.3. </b> "
 ---
 
-# 5.3.3 Configure Security Groups for EC2 & RDS
-
 In this step, configure two virtual firewall security groups to enforce isolation between the public web instance and the private database.
 
 ---
@@ -45,7 +43,7 @@ In this step, configure two virtual firewall security groups to enforce isolatio
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![Security Groups Rules](/images/5-Workshop/5.3-S3-vpc/5.3.3-security-groups/security-groups-rules.png?classes=shadow)
+  ![Security Groups Rules](security-groups-rules.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.3.4. Inbound and Outbound Security Group rules for EC2 server and RDS database connection.</div>
 </div>

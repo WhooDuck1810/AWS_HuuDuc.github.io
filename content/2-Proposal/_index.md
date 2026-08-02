@@ -39,7 +39,8 @@ The entire infrastructure is deployed on AWS within an internal Amazon VPC netwo
 - **AWS Lambda & Amazon SNS:** Automated Event-Driven processing flow. When a new file arrives on S3, Lambda is triggered to process it, and SNS sends a notification to technicians.
 - **Amazon CloudWatch:** Centralized monitoring and logging service to detect system errors.
 
-![System Architecture](/images/2-Proposal/architecture.png?classes=shadow)
+![System Architecture](AWS_Architecture_new.png?classes=shadow)
+
 
 **Core Data Flows:**
 - **Secure Authentication Flow:** The user sends a login request. The EC2 server checks the Brute-force logic (blocking if there are too many failed attempts). If valid, the Backend issues a secure JWT Token for the user to access business APIs.
@@ -72,4 +73,3 @@ The combined architecture of EC2 and AWS managed services helps optimize costs:
 
 ### 9. Expected Results
 Successfully deploy a secure, stable, and performance-optimized Tracker Maintenance system. The project serves as a testament to the seamless integration between traditional Multi-tier Web architecture (EC2, RDS) and modern Cloud features (S3 Pre-signed URL, Event-Driven Lambda), resulting in a powerful maintenance management tool that is fully autonomous in terms of authentication.
-

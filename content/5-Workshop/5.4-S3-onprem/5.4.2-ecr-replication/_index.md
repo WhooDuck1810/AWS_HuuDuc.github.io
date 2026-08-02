@@ -6,8 +6,6 @@ chapter: false
 pre: " <b> 5.4.2. </b> "
 ---
 
-# 5.4.2 Configure Amazon ECR & Cross-Region Replication
-
 In this step, create private Docker repositories on Amazon ECR for backend (`tracker-be`) and frontend (`tracker-fe`) images, and configure automatic Cross-Region Replication to secondary regions (Singapore & Ohio).
 
 ---
@@ -38,7 +36,7 @@ In this step, create private Docker repositories on Amazon ECR for backend (`tra
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![ECR Repositories](/images/5-Workshop/5.4-S3-onprem/5.4.2-ecr-replication/ecr-repositories.png?classes=shadow)
+  ![ECR Repositories](ecr-repositories.png?classes=shadow)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 5.4.2. Amazon ECR Private Repositories list displaying tracker-be and tracker-fe container images.</div>
 </div>
