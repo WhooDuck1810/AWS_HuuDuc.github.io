@@ -39,7 +39,7 @@ The entire infrastructure is deployed on AWS within an internal Amazon VPC netwo
 - **AWS Lambda & Amazon SNS:** Automated Event-Driven processing flow. When a new file arrives on S3, Lambda is triggered to process it, and SNS sends a notification to technicians.
 - **Amazon CloudWatch:** Centralized monitoring and logging service to detect system errors.
 
-![System Architecture](AWS_Architecture_new.png?classes=shadow)
+![System Architecture](AWS_Architecture_new.jpg?classes=shadow)
 
 
 **Core Data Flows:**
