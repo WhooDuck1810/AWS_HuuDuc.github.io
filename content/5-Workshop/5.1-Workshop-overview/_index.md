@@ -8,7 +8,7 @@ pre: " <b> 5.1. </b> "
 
 <div style="text-align: center; margin: 20px 0;">
 
-  ![TrackerMaintenance Architecture](AWS_Architecture.png)
+  ![TrackerMaintenance Architecture](/images/5-Workshop/5.1-Workshop-overview/AWS_Architecture_new.png)
 
   <div style="font-weight: bold; margin-top: 8px; color: #555;">Figure 1. Overall architecture of the network infrastructure and AWS service integration for the Tracker Maintenance project.</div>
 </div>
